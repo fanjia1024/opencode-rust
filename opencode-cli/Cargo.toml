@@ -27,6 +27,7 @@ tracing-subscriber = { workspace = true }
 uuid = { workspace = true }
 syntect = { workspace = true }
 unicode-width = "0.1"
+chrono = { workspace = true }
 
 [features]
 default = ["langchain"]

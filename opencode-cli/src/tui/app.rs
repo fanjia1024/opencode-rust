@@ -491,8 +491,18 @@ impl App {
         
         #[cfg(feature = "langchain")]
         {
-            // Get tools (empty for now, can be populated later)
-            let tools: Vec<Arc<dyn opencode_core::tool::Tool>> = vec![];
+            // Initialize tools
+            use opencode_tools::registry::ToolRegistry;
+            use opencode_tools::tools;
+            let mut tool_registry = ToolRegistry::new();
+            tools::register_all_tools(&mut tool_registry);
+            
+            // Convert registry to vector of tools
+            let tools: Vec<Arc<dyn opencode_core::tool::Tool>> = tool_registry.list()
+                .iter()
+                .filter_map(|id| tool_registry.get(id))
+                .cloned()
+                .collect();
             
             // Create agent manager for processing
             let mut agent_manager = AgentManager::new();
