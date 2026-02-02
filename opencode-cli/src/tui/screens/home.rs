@@ -27,16 +27,16 @@ impl HomeScreen {
             .split(area);
 
         let header = Block::default()
-            .title("OpenCode - Home")
+            .title("OpenCode - Home (n: new session)")
             .borders(Borders::ALL);
         f.render_widget(header, chunks[0]);
 
         if self.sessions.is_empty() {
             let empty = Paragraph::new(vec![
-                Line::from("No sessions yet. Create a new session to get started."),
-                Line::from("Sessions are stored under .opencode in the current directory."),
+                Line::from("No sessions yet."),
+                Line::from("Press 'n' to create a new session."),
             ])
-                .block(Block::default().borders(Borders::ALL))
+                .block(Block::default().borders(Borders::NONE))
                 .alignment(Alignment::Center);
             f.render_widget(empty, chunks[1]);
         } else {
@@ -58,8 +58,8 @@ impl HomeScreen {
             let list = List::new(items)
                 .block(
                     Block::default()
-                        .title("Sessions — Press n for new session, Esc in session to return here")
-                        .borders(Borders::ALL),
+                        .title("Sessions")
+                        .borders(Borders::NONE),
                 );
             f.render_widget(list, chunks[1]);
         }

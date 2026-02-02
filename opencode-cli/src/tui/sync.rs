@@ -1,8 +1,23 @@
+use crate::session_store;
 use opencode_core::error::Result;
 use opencode_core::session::Session;
 use std::path::PathBuf;
-use tokio::fs;
 use tokio::sync::mpsc;
+
+fn session_title(session: &Session) -> String {
+    const MAX: usize = 40;
+    for msg in &session.messages {
+        let s = msg.content.trim();
+        if !s.is_empty() {
+            return if s.len() <= MAX {
+                s.to_string()
+            } else {
+                format!("{}...", &s[..MAX.saturating_sub(3)])
+            };
+        }
+    }
+    "New session".to_string()
+}
 
 /// Lightweight session info sent from StateSync to the UI.
 pub struct SessionListItem {
@@ -27,7 +42,7 @@ impl StateSync {
             session_dir,
             tx,
             last_sync: std::time::Instant::now(),
-            sync_interval: std::time::Duration::from_secs(5),
+            sync_interval: std::time::Duration::from_secs(30), // Increased from 5 to 30 seconds to reduce polling
         }
     }
 
@@ -43,14 +58,13 @@ impl StateSync {
     /// and sends the list to the UI via the channel.
     async fn sync(&self) -> Result<()> {
         let mut list = Vec::new();
-        let mut entries = match fs::read_dir(&self.session_dir).await {
+        let entries = match std::fs::read_dir(&self.session_dir) {
             Ok(e) => e,
             Err(_) => return Ok(()),
         };
-        while let Some(entry) = entries.next_entry().await? {
+        for entry in entries.flatten() {
             let path = entry.path();
-            let is_dir = entry.file_type().await.map(|ft| ft.is_dir()).unwrap_or(false);
-            if !is_dir {
+            if !path.is_dir() {
                 continue;
             }
             let session_file = path.join("session.json");
@@ -65,11 +79,11 @@ impl StateSync {
             if id.is_empty() {
                 continue;
             }
-            match Session::load(&id, &self.session_dir).await {
+            match session_store::load_session(&session_file) {
                 Ok(session) => {
                     list.push(SessionListItem {
-                        id: session.id,
-                        title: session.title,
+                        id: session.id.to_string(),
+                        title: session_title(&session),
                         updated: session.updated_at.to_rfc3339(),
                     });
                 }

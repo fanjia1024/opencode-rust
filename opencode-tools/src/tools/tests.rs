@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use opencode_core::tool::ToolContext;
+    use super::super::{grep, read, write};
+    use opencode_core::tool::{Tool, ToolContext};
     use serde_json::json;
 
     #[tokio::test]

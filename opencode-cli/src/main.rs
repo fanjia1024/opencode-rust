@@ -1,5 +1,6 @@
 mod commands;
 mod config;
+mod session_store;
 mod tui;
 
 use clap::{Parser, Subcommand};
@@ -22,7 +23,8 @@ enum Commands {
         /// The command to run
         command: String,
     },
-    /// (Experimental) HTTP server – planned removal; use TUI or run for CLI
+    /// (Deprecated) HTTP server – planned removal; use TUI or run for CLI
+    #[clap(hide = true)]
     Serve {
         /// Port to listen on
         #[arg(short, long, default_value_t = 8080)]

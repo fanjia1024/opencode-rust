@@ -1,9 +1,10 @@
-use crate::tui::state::{AppState, Screen, DialogState};
-use crate::tui::screens::{home::HomeScreen, session::SessionScreen};
-use crate::tui::screens::home::SessionInfo;
-use crate::tui::screens::dialogs::provider::{ProviderDialog, ProviderConfig, DialogAction};
-use crate::tui::sync::{StateSync, SessionListItem};
 use crate::config::AppConfig;
+use crate::session_store;
+use crate::tui::screens::dialogs::provider::{ProviderDialog, ProviderConfig, DialogAction};
+use crate::tui::screens::home::SessionInfo;
+use crate::tui::screens::{home::HomeScreen, session::SessionScreen};
+use crate::tui::state::{AppState, DialogState, Screen};
+use crate::tui::sync::{SessionListItem, StateSync};
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use crossterm::execute;
@@ -111,7 +112,7 @@ impl App {
         if let Screen::Session(ref id) = self.state.current_screen {
             let session_file = session_dir.join(id).join("session.json");
             if session_file.exists() {
-                if let Ok(session) = Session::load(id, &session_dir).await {
+                if let Ok(session) = session_store::load_session(&session_file) {
                     if let Some(screen) = self.session_screen.borrow_mut().as_mut() {
                         screen.load_messages(&session);
                     }
@@ -397,27 +398,19 @@ impl App {
         let session_dir = config.session_dir();
         let session_file = session_dir.join(session_id).join("session.json");
         let mut session = if session_file.exists() {
-            Session::load(session_id, &session_dir)
-                .await
-                .unwrap_or_else(|_| {
-                    Session::new(
-                        session_id.to_string(),
-                        "default".to_string(),
-                        std::env::temp_dir().to_string_lossy().to_string(),
-                    )
-                })
+            session_store::load_session(&session_file).unwrap_or_else(|_| Session::new())
         } else {
-            Session::new(
-                session_id.to_string(),
-                "default".to_string(),
-                std::env::temp_dir().to_string_lossy().to_string(),
-            )
+            let s = Session::new();
+            let path = session_dir.join(s.id.to_string()).join("session.json");
+            let _ = session_store::save_session(&path, &s);
+            s
         };
+        let session_id_str = session.id.to_string();
 
         // Initialize provider and create adapter
         #[cfg(not(feature = "langchain"))]
         {
-            let _ = tx.send((session_id.to_string(), "Error: langchain-rust feature not enabled. Rebuild with --features langchain".to_string()));
+            let _ = tx.send((session_id_str.clone(), "Error: langchain-rust feature not enabled. Rebuild with --features langchain".to_string()));
             return Err(anyhow::anyhow!("langchain-rust feature not enabled"));
         }
         
@@ -441,13 +434,13 @@ impl App {
             let provider: Arc<dyn opencode_provider::Provider> = match provider_type.as_str() {
                 "openai" => {
                     if api_key.trim().is_empty() {
-                        let _ = tx.send((session_id.to_string(), "Error: No API key configured. Press 'C' to configure provider and API key.".to_string()));
+                        let _ = tx.send((session_id_str.clone(), "Error: No API key configured. Press 'C' to configure provider and API key.".to_string()));
                         return Err(anyhow::anyhow!("No API key configured"));
                     }
                     match opencode_provider::LangChainAdapter::from_openai(api_key, base_url, model) {
                         Ok(adapter) => Arc::new(adapter),
                         Err(e) => {
-                            let _ = tx.send((session_id.to_string(), format!("Error initializing OpenAI provider: {}", e)));
+                            let _ = tx.send((session_id_str.clone(), format!("Error initializing OpenAI provider: {}", e)));
                             return Err(anyhow::anyhow!("Failed to initialize provider: {}", e));
                         }
                     }
@@ -456,39 +449,39 @@ impl App {
                     match opencode_provider::LangChainAdapter::from_ollama(base_url, model) {
                         Ok(adapter) => Arc::new(adapter),
                         Err(e) => {
-                            let _ = tx.send((session_id.to_string(), format!("Error initializing Ollama provider: {}", e)));
+                            let _ = tx.send((session_id_str.clone(), format!("Error initializing Ollama provider: {}", e)));
                             return Err(anyhow::anyhow!("Failed to initialize provider: {}", e));
                         }
                     }
                 }
                 "qwen" => {
                     if api_key.trim().is_empty() {
-                        let _ = tx.send((session_id.to_string(), "Error: No API key configured for Qwen. Press 'C' to configure.".to_string()));
+                        let _ = tx.send((session_id_str.clone(), "Error: No API key configured for Qwen. Press 'C' to configure.".to_string()));
                         return Err(anyhow::anyhow!("No API key configured"));
                     }
                     match opencode_provider::LangChainAdapter::from_qwen(api_key, base_url, model) {
                         Ok(adapter) => Arc::new(adapter),
                         Err(e) => {
-                            let _ = tx.send((session_id.to_string(), format!("Error initializing Qwen provider: {}", e)));
+                            let _ = tx.send((session_id_str.clone(), format!("Error initializing Qwen provider: {}", e)));
                             return Err(anyhow::anyhow!("Failed to initialize provider: {}", e));
                         }
                     }
                 }
                 "anthropic" => {
                     if api_key.trim().is_empty() {
-                        let _ = tx.send((session_id.to_string(), "Error: No API key configured. Press 'C' to configure.".to_string()));
+                        let _ = tx.send((session_id_str.clone(), "Error: No API key configured. Press 'C' to configure.".to_string()));
                         return Err(anyhow::anyhow!("No API key configured"));
                     }
                     match opencode_provider::LangChainAdapter::from_anthropic(api_key) {
                         Ok(adapter) => Arc::new(adapter),
                         Err(e) => {
-                            let _ = tx.send((session_id.to_string(), format!("Error initializing Anthropic provider: {}", e)));
+                            let _ = tx.send((session_id_str.clone(), format!("Error initializing Anthropic provider: {}", e)));
                             return Err(anyhow::anyhow!("Failed to initialize provider: {}", e));
                         }
                     }
                 }
                 _ => {
-                    let _ = tx.send((session_id.to_string(), format!("Unsupported provider type: {}", provider_type)));
+                    let _ = tx.send((session_id_str.clone(), format!("Unsupported provider type: {}", provider_type)));
                     return Err(anyhow::anyhow!("Unsupported provider type: {}", provider_type));
                 }
             };
@@ -504,30 +497,31 @@ impl App {
             // Create agent manager for processing
             let mut agent_manager = AgentManager::new();
             if let Err(e) = agent_manager.switch(agent_name) {
-                let _ = tx.send((session_id.to_string(), format!("Error switching agent: {}", e)));
+                let _ = tx.send((session_id_str.clone(), format!("Error switching agent: {}", e)));
                 return Err(anyhow::anyhow!("Failed to switch agent: {}", e));
             }
             
             // Process with agent
             let ctx = Context {
-                session_id: session_id.to_string(),
+                session_id: session_id_str.clone(),
                 message_id: uuid::Uuid::new_v4().to_string(),
                 agent: agent_name.to_string(),
             };
             
             match agent_manager.process(&ctx, input, &mut session, &provider_adapter, &tools).await {
                 Ok(_) => {
-                    if let Err(e) = session.save(&session_dir).await {
+                    let save_path = session_dir.join(&session_id_str).join("session.json");
+                    if let Err(e) = session_store::save_session(&save_path, &session) {
                         tracing::warn!("Failed to save session: {}", e);
                     }
-                    if let Some(last_msg) = session.messages.back() {
-                        if matches!(last_msg.role, opencode_core::session::MessageRole::Assistant) {
-                            let _ = tx.send((session_id.to_string(), last_msg.content.clone()));
+                    if let Some(last_msg) = session.messages.last() {
+                        if matches!(last_msg.role, opencode_core::session::Role::Assistant) {
+                            let _ = tx.send((session_id_str.clone(), last_msg.content.clone()));
                         }
                     }
                 }
                 Err(e) => {
-                    let _ = tx.send((session_id.to_string(), format!("Error: {}", e)));
+                    let _ = tx.send((session_id_str.clone(), format!("Error: {}", e)));
                     return Err(anyhow::anyhow!("Agent processing failed: {}", e));
                 }
             }

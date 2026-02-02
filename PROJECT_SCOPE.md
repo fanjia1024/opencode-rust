@@ -1,5 +1,9 @@
 # Project scope
 
+**Before contributing:** This project is **CLI + TUI only**. We do not accept PRs that add a long-term HTTP server, an Agent SDK, a workflow engine, a plugin API, or dynamic tool loading. Such PRs will be declined. Read the sections below to see what is in scope and what is not.
+
+---
+
 ## Project goal
 
 **OpenCode Rust** is a **local CLI / TUI Agent client**. It focuses on high-quality interaction between you, the Agent, and your local system.
@@ -41,6 +45,8 @@
 
 - We do **not** accept PRs that expand the above scope (e.g. adding a long-term supported HTTP server, or a public Tool Registry API).
 - Experimental features must be clearly marked in docs and in `--help`.
+
+**We will say no to:** PRs that add or promote an HTTP API as a main product, an Agent SDK or framework for third-party integration, a workflow/DAG engine, a plugin marketplace or dynamic tool loading, or multi-tenant/remote/cloud sessions.
 
 ---
 

@@ -1,36 +1,90 @@
 # OpenCode Rust
 
-**Local AI coding assistant in the terminal.** CLI + TUI only — no Server, no SDK.
+**A local AI coding assistant in your terminal.**
+CLI + TUI only — **no server, no SDK, no agent framework**.
 
-## Use cases
+OpenCode Rust is a lightweight, local-first terminal client for chatting with an AI agent while you design, review, and iterate on code.
 
-- **Chat with an Agent in the terminal** – Discuss design and implementation, review diffs, iterate on code.
-- **One-off Q&A** – Ask a question from the shell or scripts; `opencode run "your question"`.
-- **Local conversation history** – Sessions live under `.opencode` in your project; pick up where you left off.
+---
 
-## Two ways to use
+## What this project is
 
-- **TUI (main)** – `opencode tui` — Home (session list / new session), Chat (conversation + input), Config (Provider / API key) via **`C`**.
-- **One-off** – `opencode run "your question"` — Single question, scriptable. (May be renamed to `ask` later.)
+* **A terminal-first product**
+  * Interactive **TUI** for ongoing conversations
+  * Scriptable **CLI** for one-off questions
+* **Local-first**
+  * Sessions live in your project under `.opencode/sessions`
+  * No background services, no daemon
+* **Human-in-the-loop**
+  * You drive the conversation
+  * The agent assists — it does not autonomously run workflows
 
-We do **not** provide an HTTP API as a main product. The `serve` subcommand is **experimental and planned for removal**; use TUI or `run` instead.
+---
 
-## Features
+## What this project is NOT
 
-- **TUI-first** – Home, Chat, and Config modal; session list; syntax highlighting and virtual scrolling.
-- **Session = chat history** – Persisted under `.opencode/sessions`; list refreshes from disk (StateSync; may be simplified later).
-- **Built-in tool set** – File read/write, grep, search, edit, patch, etc.; no public Registry API, no dynamic loading.
-- **Default AI provider** – **langchain-ai-rust 5.0.1**; OpenAI and Anthropic via config. Other providers may be marked experimental.
-- **Caching** – LRU cache for performance.
+* No HTTP server / SaaS backend
+* No Agent SDK or framework
+* No workflow engine
+* No long-running autonomous agents
+* No plugin marketplace or dynamic tool loading
 
-## Requirements
+If you are looking for an agent platform or orchestration framework, this is **not** the right project.
 
-- Rust toolchain (1.70+ recommended)
-- Network access for API calls when using the AI provider
+---
 
-## Installation and build
+## Primary use cases
 
-Clone and build the workspace (default build includes langchain-ai-rust):
+* **Chat with an AI agent in the terminal**
+  * Discuss architecture and design
+  * Review code and diffs
+  * Refine implementation ideas
+* **One-off Q&A from the shell**
+  * Ask a single question from scripts or CI
+* **Persistent local context**
+  * Pick up conversations where you left off
+  * Sessions are plain data, stored on disk
+
+---
+
+## How you use it
+
+### 1. TUI (main experience)
+
+```bash
+opencode tui
+```
+
+* Home: session list / create new session
+* Chat: conversation + input
+* Config: provider & API key (press `C`)
+
+This is the primary way OpenCode Rust is meant to be used.
+
+**Keybindings:** `n` new session, `C` config, `Esc` back to Home, `q` quit. See [USAGE.md](USAGE.md) for full keybindings.
+
+### 2. One-off CLI questions
+
+```bash
+opencode run "Explain this Rust lifetime error"
+```
+
+* Single question
+* No interactive session
+* Designed to be scriptable
+
+*(The `run` command may be renamed to `ask` in the future.)*
+
+---
+
+## Getting started
+
+### Requirements
+
+* Rust toolchain (1.70+ recommended)
+* Network access for API calls when using the AI provider
+
+### Installation and build
 
 ```bash
 git clone https://github.com/fanjia1024/opencode-rust.git
@@ -38,113 +92,108 @@ cd opencode-rust
 cargo build --workspace
 ```
 
-To build **without** the AI provider (no langchain-ai-rust):
+To build **without** the AI provider:
 
 ```bash
 cargo build --workspace --no-default-features
 ```
 
-## Quick start
+### Quick start
 
-### 1. Set API key
+1. **Set API key** — `export OPENAI_API_KEY="your-key"` (or `OPENCODE_OPENAI_API_KEY`). You can also set provider and key in the TUI with `C`.
+2. **Run the TUI** — `cargo run --bin opencode -- tui` (or `opencode tui` if installed).
+3. **Basic flow** — From Home, press `n` to create a session; in Chat, type and press Enter to send. See [USAGE.md](USAGE.md) for details.
 
-Set one of these environment variables:
+---
 
-```bash
-export OPENAI_API_KEY="your-openai-api-key"
-# or
-export OPENCODE_OPENAI_API_KEY="your-openai-api-key"
-```
+## Core design principles
 
-You can also configure the provider later in the TUI by pressing **`C`** (see [Configuration](#configuration)).
+### CLI + TUI only
 
-### 2. Run the TUI
+OpenCode Rust is a **terminal application**, not a service.
+There is no stable HTTP API.
 
-```bash
-cargo run --bin opencode -- tui
-```
+> The `serve` subcommand is experimental and planned for removal.
 
-### 3. Basic flow
+### Sessions are just chat history
 
-1. **Home** – Press **`n`** to create a new session (or use the session list if you have saved sessions).
-2. **Session** – Type your message in the input area and press **Enter** to send.
-3. The assistant reply is shown in the conversation; responses use the configured provider (e.g. OpenAI via langchain-ai-rust).
+A session is:
 
-## Configuration
+* An ID
+* A list of messages
+* Timestamps
 
-- **Provider** – The app reads the default provider from config or environment. In the TUI, press **`C`** to open the Provider dialog and set provider type (e.g. OpenAI, Anthropic), API key, and optional base URL. Config is stored under the platform config directory (e.g. `~/.config/opencode` on Linux/macOS).
-- **Session directory** – Sessions are stored under `.opencode/sessions` in the current directory. The Home screen session list is refreshed from this directory (StateSync; may be simplified to event-driven or manual refresh later).
+Sessions do **not** manage tools, providers, or execution logic.
 
-## TUI usage
+### Built-in tools, not a platform
 
-### Home screen
+Tools exist only to improve the terminal coding experience:
 
-- **`n`** – Create a new session.
-- **`q`** – Quit the application.
-- The session list shows persisted sessions from disk; it updates automatically.
+* File read / write
+* Search / grep
+* Patch / edit helpers
 
-### Session screen
+There is:
 
-- **`Esc`** – Return to Home.
-- **`↑` / `↓`** – Scroll messages.
-- Type in the input box; **Enter** sends the message, **Backspace** deletes a character.
-- **`q`** – Quit.
+* No public tool registry
+* No dynamic loading
+* No plugin API
 
-### Global
+### Opinionated, minimal providers
 
-- **`C`** – Open the Provider configuration dialog (API key, provider type, base URL).
+* Default provider: `langchain-ai-rust` (OpenAI / Anthropic)
+* Other providers may exist but are **explicitly experimental**
 
-## CLI commands
-
-After building:
-
-```bash
-# Start the TUI (main)
-cargo run --bin opencode -- tui
-
-# One-off Q&A (scriptable)
-cargo run --bin opencode -- run "your question"
-```
-
-With an installed `opencode` binary:
-
-```bash
-opencode tui
-opencode run "your question"
-```
-
-**Note:** `opencode serve` is **experimental and planned for removal**. Do not rely on it; use TUI or `run` instead. See [PROJECT_SCOPE.md](PROJECT_SCOPE.md).
+---
 
 ## Project structure
 
 ```
 opencode-rust/
-├── opencode-core/          # Core abstractions and interfaces
-├── opencode-provider/      # AI provider (langchain-ai-rust 5.0.1)
-├── opencode-tools/         # Tool system
-└── opencode-cli/           # CLI and TUI
+├── opencode-core/      # Core data models and abstractions
+├── opencode-provider/  # AI provider integrations
+├── opencode-tools/     # Built-in tool set (internal)
+└── opencode-cli/       # CLI and TUI (the product)
 ```
+
+---
 
 ## Troubleshooting
 
-- **No API key configured** – Set `OPENAI_API_KEY` or `OPENCODE_OPENAI_API_KEY`, or press **`C`** in the TUI to configure the provider.
-- **Feature / langchain not enabled** – If you built with `--no-default-features`, the AI provider is disabled. Use a normal build (`cargo build --workspace`) or enable the feature explicitly: `cargo build --workspace --features langchain`.
-- **Error initializing provider** – Check that your API key is valid and that the machine can reach the provider (e.g. OpenAI) over the network.
+* **No API key** — Set `OPENAI_API_KEY` or `OPENCODE_OPENAI_API_KEY`, or press `C` in the TUI to configure the provider.
+* **Feature / langchain not enabled** — If you built with `--no-default-features`, use `cargo build --workspace` or `cargo build --workspace --features langchain`.
+* **Error initializing provider** — Check API key and network reachability to the provider.
 
-For more detail, see `SETUP_API_KEY.md` and `USAGE.md`.
+See [SETUP_API_KEY.md](SETUP_API_KEY.md) and [USAGE.md](USAGE.md) for more.
+
+---
 
 ## Status
 
-- Core TUI, session management, and session list (StateSync) are in place.
-- **langchain-ai-rust** is the default built-in provider (OpenAI and Anthropic via configuration).
-- Session persistence and provider configuration (TUI dialog) work. Scope and convergence plans are in [PROJECT_SCOPE.md](PROJECT_SCOPE.md).
+* Core TUI experience implemented
+* Local session persistence
+* Provider configuration via TUI
+* Some components are intentionally overbuilt and will be simplified
+* Scope is actively converging — see [PROJECT_SCOPE.md](PROJECT_SCOPE.md)
+
+---
 
 ## Documentation
 
-- `USAGE.md` – Usage guide and flow.
-- `SETUP_API_KEY.md` – API key setup.
-- `LANGCHAIN_FIXES.md` – Notes on langchain-ai-rust integration.
+* [USAGE.md](USAGE.md) — Usage guide and flow
+* [SETUP_API_KEY.md](SETUP_API_KEY.md) — API key setup
+* [PROJECT_SCOPE.md](PROJECT_SCOPE.md) — Scope and contributions
+* [TECH_DEBT.md](TECH_DEBT.md) — Future removals and convergence list
+* [ROADMAP.md](ROADMAP.md) — v0.2 / v0.3 roadmap
+* [LANGCHAIN_FIXES.md](LANGCHAIN_FIXES.md) — Notes on langchain-ai-rust integration
+
+---
 
 ## License
 
-MIT. See `LICENSE` in this repository.
+MIT License. See [LICENSE](LICENSE) in this repository.
+
+---
+
+If you are interested in contributing, please read **[PROJECT_SCOPE.md](PROJECT_SCOPE.md)** first.
+PRs that expand scope beyond CLI/TUI will likely be declined.

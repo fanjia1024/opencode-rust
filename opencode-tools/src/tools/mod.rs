@@ -23,21 +23,26 @@ mod tests;
 use crate::registry::ToolRegistry;
 
 pub fn register_all_tools(registry: &mut ToolRegistry) {
+    // Essential tools for terminal coding experience
     registry.register(read::ReadTool::new());
     registry.register(write::WriteTool::new());
     registry.register(ls::ListTool::new());
     registry.register(grep::GrepTool::new());
-    registry.register(glob::GlobTool::new());
     registry.register(edit::EditTool::new());
-    registry.register(multiedit::MultiEditTool::new());
     registry.register(patch::PatchTool::new());
     registry.register(bash::BashTool::new());
-    // registry.register(batch::BatchTool::new()); // BatchTool requires special setup
-    registry.register(lsp::LspTool::new());
-    registry.register(question::QuestionTool::new());
-    registry.register(webfetch::WebFetchTool::new());
-    registry.register(websearch::WebSearchTool::new());
+    
+    // Optional but useful tools
+    registry.register(glob::GlobTool::new());
+    registry.register(multiedit::MultiEditTool::new());
     registry.register(codesearch::CodeSearchTool::new());
-    registry.register(task::TaskTool::new());
-    registry.register(todo::TodoTool::new());
+    
+    // Removed tools that are not terminal-oriented or directly useful in coding chat:
+    // - lsp::LspTool (external dependency, may not be available)
+    // - question::QuestionTool (might be redundant)
+    // - webfetch::WebFetchTool (external network calls)
+    // - websearch::WebSearchTool (external network calls)
+    // - task::TaskTool (workflow functionality)
+    // - todo::TodoTool (workflow functionality)
+    // - batch::BatchTool (workflow functionality)
 }

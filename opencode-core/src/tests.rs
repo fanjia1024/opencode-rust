@@ -2,10 +2,9 @@
 mod tests {
     use super::*;
     use crate::permission::{PermissionAction, PermissionManager};
-    use crate::session::{Message, MessageRole, Session};
+    use crate::session::{Message, Role, Session};
     use crate::cache::{Cache, ConcurrentCache, ProviderCache};
     use chrono::Utc;
-    use uuid::Uuid;
 
     #[test]
     fn test_permission_manager() {
@@ -20,55 +19,95 @@ mod tests {
 
     #[test]
     fn test_session_creation() {
-        let session = Session::new(
-            Uuid::new_v4().to_string(),
-            "test-project".to_string(),
-            "/tmp".to_string(),
-        );
-        assert!(!session.id.is_empty());
+        let session = Session::new();
         assert_eq!(session.messages.len(), 0);
+        assert!(session.is_empty());
     }
 
     #[test]
     fn test_session_add_message() {
-        let mut session = Session::new(
-            Uuid::new_v4().to_string(),
-            "test-project".to_string(),
-            "/tmp".to_string(),
-        );
-
+        let mut session = Session::new();
         let message = Message {
-            id: Uuid::new_v4().to_string(),
-            role: MessageRole::User,
+            role: Role::User,
             content: "Hello".to_string(),
-            timestamp: Utc::now(),
+            created_at: Utc::now(),
+            meta: None,
         };
-
-        session.add_message(message);
+        session.push(message);
         assert_eq!(session.messages.len(), 1);
+        assert!(!session.is_empty());
     }
 
     #[test]
-    fn test_session_compaction() {
-        let mut session = Session::new(
-            Uuid::new_v4().to_string(),
-            "test-project".to_string(),
-            "/tmp".to_string(),
-        );
+    fn session_is_pure_data() {
+        let s = Session::new();
+        let json = serde_json::to_string(&s).unwrap();
+        let _: Session = serde_json::from_str(&json).unwrap();
+    }
 
-        for i in 0..150 {
-            let message = Message {
-                id: Uuid::new_v4().to_string(),
-                role: MessageRole::User,
-                content: format!("Message {}", i),
-                timestamp: Utc::now(),
-            };
-            session.add_message(message);
-        }
+    #[test]
+    fn session_push_and_is_empty() {
+        let mut session = Session::new();
+        assert!(session.is_empty());
+        session.push(Message {
+            role: Role::User,
+            content: "hi".to_string(),
+            created_at: Utc::now(),
+            meta: None,
+        });
+        assert!(!session.is_empty());
+        assert_eq!(session.messages[0].content, "hi");
+    }
 
-        assert_eq!(session.messages.len(), 150);
-        session.compact().unwrap();
-        assert!(session.messages.len() <= 100);
+    #[test]
+    fn session_roundtrip() {
+        let mut session = Session::new();
+        session.push(Message {
+            role: Role::User,
+            content: "one".to_string(),
+            created_at: Utc::now(),
+            meta: None,
+        });
+        session.push(Message {
+            role: Role::Assistant,
+            content: "two".to_string(),
+            created_at: Utc::now(),
+            meta: None,
+        });
+        let json = serde_json::to_string(&session).unwrap();
+        let loaded: Session = serde_json::from_str(&json).unwrap();
+        assert_eq!(loaded.messages.len(), 2);
+        assert_eq!(loaded.messages[0].content, "one");
+        assert_eq!(loaded.messages[1].content, "two");
+    }
+
+    #[test]
+    fn session_id_unique() {
+        let s1 = Session::new();
+        let s2 = Session::new();
+        assert_ne!(s1.id, s2.id);
+    }
+
+    #[test]
+    fn message_meta_optional() {
+        let json = r#"{"role":"User","content":"x","created_at":"2024-01-01T00:00:00Z"}"#;
+        let m: Message = serde_json::from_str(json).unwrap();
+        assert!(m.meta.is_none());
+        assert_eq!(m.content, "x");
+
+        let with_meta = Message {
+            role: Role::Tool,
+            content: "y".to_string(),
+            created_at: Utc::now(),
+            meta: Some(crate::session::MessageMeta {
+                tool_name: Some("read".to_string()),
+                tool_call_id: Some("id1".to_string()),
+            }),
+        };
+        let json2 = serde_json::to_string(&with_meta).unwrap();
+        let m2: Message = serde_json::from_str(&json2).unwrap();
+        assert!(m2.meta.is_some());
+        assert_eq!(m2.meta.as_ref().unwrap().tool_name.as_deref(), Some("read"));
     }
 
     #[tokio::test]

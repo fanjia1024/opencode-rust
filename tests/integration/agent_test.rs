@@ -17,16 +17,12 @@ mod tests {
 
         let provider = OpenAIProvider::new(api_key, None).unwrap();
         let manager = AgentManager::new();
+        let mut session = Session::new();
         let ctx = Context {
-            session_id: Uuid::new_v4().to_string(),
+            session_id: session.id.to_string(),
             message_id: Uuid::new_v4().to_string(),
             agent: "build".to_string(),
         };
-        let mut session = Session::new(
-            ctx.session_id.clone(),
-            "test-project".to_string(),
-            "/tmp".to_string(),
-        );
 
         let mut tool_registry = ToolRegistry::new();
         register_all_tools(&mut tool_registry);

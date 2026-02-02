@@ -85,35 +85,32 @@ impl BuildAgent {
 impl Agent for BuildAgent {
     async fn process(
         &self,
-        ctx: &Context,
+        _ctx: &Context,
         input: &str,
         session: &mut Session,
         provider: &dyn Provider,
-        tools: &[Arc<dyn Tool>],
+        _tools: &[Arc<dyn Tool>],
     ) -> Result<()> {
-        use crate::session::{Message, MessageRole};
+        use crate::session::{Message, Role};
         use chrono::Utc;
-        use uuid::Uuid;
 
-        use crate::session::Message as SessionMessage;
-        use crate::session::MessageRole as SessionMessageRole;
-        
-        let user_message = SessionMessage {
-            id: Uuid::new_v4().to_string(),
-            role: SessionMessageRole::User,
+        let user_message = Message {
+            role: Role::User,
             content: input.to_string(),
-            timestamp: Utc::now(),
+            created_at: Utc::now(),
+            meta: None,
         };
-        session.add_message(user_message);
+        session.push_message(user_message);
 
         let messages: Vec<crate::agent::Message> = session
             .messages
             .iter()
             .map(|m| crate::agent::Message {
                 role: match m.role {
-                    SessionMessageRole::User => crate::agent::MessageRole::User,
-                    SessionMessageRole::Assistant => crate::agent::MessageRole::Assistant,
-                    SessionMessageRole::System => crate::agent::MessageRole::System,
+                    Role::User => crate::agent::MessageRole::User,
+                    Role::Assistant => crate::agent::MessageRole::Assistant,
+                    Role::System => crate::agent::MessageRole::System,
+                    Role::Tool => crate::agent::MessageRole::System,
                 },
                 content: m.content.clone(),
             })
@@ -128,13 +125,13 @@ impl Agent for BuildAgent {
 
         let response = provider.generate(request).await?;
 
-        let assistant_message = SessionMessage {
-            id: Uuid::new_v4().to_string(),
-            role: SessionMessageRole::Assistant,
+        let assistant_message = Message {
+            role: Role::Assistant,
             content: response.content,
-            timestamp: Utc::now(),
+            created_at: Utc::now(),
+            meta: None,
         };
-        session.add_message(assistant_message);
+        session.push_message(assistant_message);
 
         Ok(())
     }

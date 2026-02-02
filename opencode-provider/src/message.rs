@@ -1,11 +1,13 @@
+use chrono::Utc;
+use opencode_core::session::{Message as CoreMessage, Role as CoreRole};
 use crate::trait_::{Message, MessageRole};
-use opencode_core::session::{Message as CoreMessage, MessageRole as CoreMessageRole};
 
 pub fn to_provider_message(msg: &CoreMessage) -> Message {
     let role = match msg.role {
-        CoreMessageRole::User => MessageRole::User,
-        CoreMessageRole::Assistant => MessageRole::Assistant,
-        CoreMessageRole::System => MessageRole::System,
+        CoreRole::User => MessageRole::User,
+        CoreRole::Assistant => MessageRole::Assistant,
+        CoreRole::System => MessageRole::System,
+        CoreRole::Tool => MessageRole::System,
     };
     Message {
         role,
@@ -14,19 +16,16 @@ pub fn to_provider_message(msg: &CoreMessage) -> Message {
 }
 
 pub fn from_provider_message(msg: &Message) -> CoreMessage {
-    use chrono::Utc;
-    use uuid::Uuid;
-    
     let role = match msg.role {
-        MessageRole::User => CoreMessageRole::User,
-        MessageRole::Assistant => CoreMessageRole::Assistant,
-        MessageRole::System => CoreMessageRole::System,
+        MessageRole::User => CoreRole::User,
+        MessageRole::Assistant => CoreRole::Assistant,
+        MessageRole::System => CoreRole::System,
     };
-    
+
     CoreMessage {
-        id: Uuid::new_v4().to_string(),
         role,
         content: msg.content.clone(),
-        timestamp: Utc::now(),
+        created_at: Utc::now(),
+        meta: None,
     }
 }
