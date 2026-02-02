@@ -16,24 +16,64 @@ impl LangChainAdapter {
         Self { llm }
     }
 
-    pub fn from_openai(api_key: String) -> Result<Self> {
-        use langchain_ai_rust::llm::openai::{OpenAI, OpenAIConfig, OpenAIModel};
-        
-        let config = OpenAIConfig::default()
-            .with_api_key(api_key);
-        
-        let openai = OpenAI::new(config)
-            .with_model(OpenAIModel::Gpt4oMini);
-        
+    pub fn from_openai(
+        api_key: String,
+        base_url: Option<String>,
+        model: Option<String>,
+    ) -> Result<Self> {
+        use langchain_ai_rust::llm::openai::{OpenAI, OpenAIConfig};
+
+        let config = OpenAIConfig::default().with_api_key(api_key);
+        let config = if let Some(url) = base_url {
+            config.with_api_base(url)
+        } else {
+            config
+        };
+        let model_name = model.unwrap_or_else(|| "gpt-4o-mini".to_string());
+        let openai = OpenAI::new(config).with_model(model_name);
+
         Ok(Self {
             llm: Arc::new(openai),
         })
     }
 
+    pub fn from_ollama(base_url: Option<String>, model: Option<String>) -> Result<Self> {
+        use langchain_ai_rust::llm::openai::OpenAI;
+        use langchain_ai_rust::llm::ollama::openai::OllamaConfig;
+
+        let api_base = base_url.unwrap_or_else(|| "http://localhost:11434/v1".to_string());
+        let config = OllamaConfig::default().with_api_base(api_base);
+        let model_name = model.unwrap_or_else(|| "llama3.2".to_string());
+        let openai = OpenAI::new(config).with_model(model_name);
+
+        Ok(Self {
+            llm: Arc::new(openai),
+        })
+    }
+
+    pub fn from_qwen(
+        api_key: String,
+        base_url: Option<String>,
+        model: Option<String>,
+    ) -> Result<Self> {
+        use langchain_ai_rust::llm::qwen::Qwen;
+
+        let qwen = Qwen::new().with_api_key(api_key);
+        let qwen = if let Some(url) = base_url {
+            qwen.with_base_url(url)
+        } else {
+            qwen
+        };
+        let model_name = model.unwrap_or_else(|| "qwen-turbo".to_string());
+        let qwen = qwen.with_model(model_name);
+
+        Ok(Self {
+            llm: Arc::new(qwen),
+        })
+    }
+
     pub fn from_anthropic(_api_key: String) -> Result<Self> {
-        // Anthropic support may not be available in this version of langchain-rust
-        // Return an error for now
-        Err(Error::Provider("Anthropic support not available in langchain-rust".to_string()))
+        Err(Error::Provider("Anthropic support not available in langchain-ai-rust".to_string()))
     }
 }
 
@@ -87,11 +127,19 @@ impl LangChainAdapter {
         Self
     }
 
-    pub fn from_openai(_api_key: String) -> Result<Self> {
-        Err(Error::Provider("langchain-rust feature not enabled".to_string()))
+    pub fn from_openai(_api_key: String, _base_url: Option<String>, _model: Option<String>) -> Result<Self> {
+        Err(Error::Provider("langchain-ai-rust feature not enabled".to_string()))
+    }
+
+    pub fn from_ollama(_base_url: Option<String>, _model: Option<String>) -> Result<Self> {
+        Err(Error::Provider("langchain-ai-rust feature not enabled".to_string()))
+    }
+
+    pub fn from_qwen(_api_key: String, _base_url: Option<String>, _model: Option<String>) -> Result<Self> {
+        Err(Error::Provider("langchain-ai-rust feature not enabled".to_string()))
     }
 
     pub fn from_anthropic(_api_key: String) -> Result<Self> {
-        Err(Error::Provider("langchain-rust feature not enabled".to_string()))
+        Err(Error::Provider("langchain-ai-rust feature not enabled".to_string()))
     }
 }

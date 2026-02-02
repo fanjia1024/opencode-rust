@@ -1,6 +1,7 @@
 use ratatui::prelude::*;
 use ratatui::widgets::*;
 use crate::tui::components::{header, footer, message_view::MessageView, sidebar};
+use opencode_core::session::{Session, MessageRole};
 
 pub struct SessionScreen {
     pub session_id: String,
@@ -14,6 +15,17 @@ impl SessionScreen {
             session_id,
             message_view: MessageView::new(),
             input: String::new(),
+        }
+    }
+
+    pub fn load_messages(&mut self, session: &Session) {
+        for msg in &session.messages {
+            let prefix = match msg.role {
+                MessageRole::User => "You: ",
+                MessageRole::Assistant => "Assistant: ",
+                MessageRole::System => "System: ",
+            };
+            self.message_view.add_message(format!("{}{}", prefix, msg.content));
         }
     }
 
@@ -55,6 +67,7 @@ impl SessionScreen {
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Length(3),
+                Constraint::Length(2),
                 Constraint::Min(1),
                 Constraint::Length(3),
                 Constraint::Length(3),
@@ -62,7 +75,10 @@ impl SessionScreen {
             .split(chunks[1]);
 
         header::render(f, right_chunks[0], &format!("Session: {}", self.session_id));
-        self.message_view.render(f, right_chunks[1]);
+        let guidance = Paragraph::new("Welcome. Press C to configure provider. Type below and press Enter to send.")
+            .style(Style::default().fg(Color::DarkGray));
+        f.render_widget(guidance, right_chunks[1]);
+        self.message_view.render(f, right_chunks[2]);
         
         // Input area
         let input_block = Block::default()
@@ -71,9 +87,9 @@ impl SessionScreen {
         let input_paragraph = Paragraph::new(self.input.as_str())
             .block(input_block)
             .style(Style::default().fg(Color::Yellow));
-        f.render_widget(input_paragraph, right_chunks[2]);
-        
-        footer::render(f, right_chunks[3], "Press 'q' to quit, 'Esc' to go back, 'Enter' to send");
+        f.render_widget(input_paragraph, right_chunks[3]);
+
+        footer::render(f, right_chunks[4], "Press 'q' to quit, 'Esc' to go back, 'Enter' to send");
         
         sidebar::render(f, chunks[0]);
     }

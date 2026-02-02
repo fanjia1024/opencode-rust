@@ -32,7 +32,10 @@ impl HomeScreen {
         f.render_widget(header, chunks[0]);
 
         if self.sessions.is_empty() {
-            let empty = Paragraph::new("No sessions yet. Create a new session to get started.")
+            let empty = Paragraph::new(vec![
+                Line::from("No sessions yet. Create a new session to get started."),
+                Line::from("Sessions are stored under .opencode in the current directory."),
+            ])
                 .block(Block::default().borders(Borders::ALL))
                 .alignment(Alignment::Center);
             f.render_widget(empty, chunks[1]);
@@ -53,7 +56,11 @@ impl HomeScreen {
                 .collect();
 
             let list = List::new(items)
-                .block(Block::default().title("Sessions").borders(Borders::ALL));
+                .block(
+                    Block::default()
+                        .title("Sessions — Press n for new session, Esc in session to return here")
+                        .borders(Borders::ALL),
+                );
             f.render_widget(list, chunks[1]);
         }
     }

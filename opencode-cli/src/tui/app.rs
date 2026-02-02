@@ -12,6 +12,7 @@ use ratatui::prelude::*;
 use ratatui::widgets;
 use std::io;
 use std::cell::RefCell;
+use std::path::Path;
 use std::sync::Arc;
 use std::collections::HashMap;
 use tokio::sync::mpsc;
@@ -34,18 +35,60 @@ pub struct App {
     provider_dialog: RefCell<Option<ProviderDialog>>,
 }
 
+fn initial_session_id(session_dir: &Path) -> String {
+    if !session_dir.exists() {
+        return uuid::Uuid::new_v4().to_string();
+    }
+    let entries = match std::fs::read_dir(session_dir) {
+        Ok(e) => e,
+        Err(_) => return uuid::Uuid::new_v4().to_string(),
+    };
+    let mut latest: Option<(String, std::time::SystemTime)> = None;
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            let session_file = path.join("session.json");
+            if session_file.exists() {
+                let id = path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("")
+                    .to_string();
+                if id.is_empty() {
+                    continue;
+                }
+                let mtime = std::fs::metadata(&session_file)
+                    .and_then(|m| m.modified())
+                    .unwrap_or(std::time::UNIX_EPOCH);
+                if latest.is_none() || mtime > latest.as_ref().unwrap().1 {
+                    latest = Some((id, mtime));
+                }
+            }
+        }
+    }
+    latest
+        .map(|(id, _)| id)
+        .unwrap_or_else(|| uuid::Uuid::new_v4().to_string())
+}
+
 impl App {
     pub fn new() -> Self {
         let (tx, rx) = mpsc::unbounded_channel();
         let (session_list_tx, session_list_rx) = mpsc::unbounded_channel();
         let config = AppConfig::load().unwrap_or_else(|_| AppConfig::default());
         let session_dir = config.session_dir();
-        let state_sync = StateSync::new(session_dir, session_list_tx);
+        let state_sync = StateSync::new(session_dir.clone(), session_list_tx);
+        let initial_id = initial_session_id(&session_dir);
+        let state = AppState {
+            current_screen: Screen::Session(initial_id.clone()),
+            ..AppState::default()
+        };
+        let session_screen = RefCell::new(Some(SessionScreen::new(initial_id)));
         Self {
-            state: AppState::default(),
+            state,
             should_quit: false,
             home_screen: HomeScreen::new(),
-            session_screen: RefCell::new(None),
+            session_screen,
             agent_manager: AgentManager::new(),
             sessions: RefCell::new(HashMap::new()),
             response_tx: tx,
@@ -63,6 +106,20 @@ impl App {
         execute!(stdout, EnterAlternateScreen)?;
         let backend = CrosstermBackend::new(stdout);
         let mut terminal = Terminal::new(backend)?;
+
+        let session_dir = self.config.borrow().session_dir();
+        if let Screen::Session(ref id) = self.state.current_screen {
+            let session_file = session_dir.join(id).join("session.json");
+            if session_file.exists() {
+                if let Ok(session) = Session::load(id, &session_dir).await {
+                    if let Some(screen) = self.session_screen.borrow_mut().as_mut() {
+                        screen.load_messages(&session);
+                    }
+                } else {
+                    tracing::debug!("Failed to load session {}", id);
+                }
+            }
+        }
 
         loop {
             terminal.draw(|f| self.ui(f))?;
@@ -151,27 +208,30 @@ impl App {
     }
 
     fn handle_key(&mut self, key: KeyCode) -> Result<()> {
-        // Check if we're in a dialog first
+        // Check if we're in a dialog first (borrow only to get action, then release before mutating)
         if let Screen::Dialog(dialog_state) = &self.state.current_screen {
             if let DialogState::Provider = dialog_state.as_ref() {
-                if let Some(dialog) = self.provider_dialog.borrow_mut().as_mut() {
-                    use crossterm::event::KeyEvent;
-                    let key_event = KeyEvent {
-                        code: key,
-                        modifiers: crossterm::event::KeyModifiers::empty(),
-                        kind: KeyEventKind::Press,
-                        state: crossterm::event::KeyEventState::empty(),
-                    };
-                    match dialog.handle_key(key_event) {
-                        DialogAction::Continue => {
-                            return Ok(());
-                        }
+                use crossterm::event::KeyEvent;
+                let key_event = KeyEvent {
+                    code: key,
+                    modifiers: crossterm::event::KeyModifiers::empty(),
+                    kind: KeyEventKind::Press,
+                    state: crossterm::event::KeyEventState::empty(),
+                };
+                let action = {
+                    if let Some(dialog) = self.provider_dialog.borrow_mut().as_mut() {
+                        Some(dialog.handle_key(key_event))
+                    } else {
+                        None
+                    }
+                };
+                if let Some(action) = action {
+                    match action {
+                        DialogAction::Continue => return Ok(()),
                         DialogAction::Save(config) => {
-                            // Save configuration
                             if let Err(e) = self.save_provider_config(&config) {
                                 tracing::error!("Failed to save provider config: {}", e);
                             } else {
-                                // Close dialog
                                 self.state.current_screen = match &self.state.current_screen {
                                     Screen::Home => Screen::Home,
                                     Screen::Session(id) => Screen::Session(id.clone()),
@@ -182,7 +242,6 @@ impl App {
                             return Ok(());
                         }
                         DialogAction::Cancel => {
-                            // Close dialog
                             self.state.current_screen = match &self.state.current_screen {
                                 Screen::Home => Screen::Home,
                                 Screen::Session(id) => Screen::Session(id.clone()),
@@ -305,6 +364,7 @@ impl App {
         let dialog = if let Some(info) = provider_info {
             ProviderDialog::with_initial_values(
                 Some(info.provider_type),
+                info.model,
                 info.api_key,
                 info.base_url,
             )
@@ -322,6 +382,7 @@ impl App {
             config.provider.clone(),
             config.api_key.clone(),
             config.base_url.clone(),
+            config.model.clone(),
         )?;
         Ok(())
     }
@@ -333,14 +394,26 @@ impl App {
         config: AppConfig,
         tx: mpsc::UnboundedSender<(String, String)>,
     ) -> Result<()> {
-        // Create a new session for this request
-        // In a real implementation, this would be persisted and loaded
-        let mut session = Session::new(
-            session_id.to_string(),
-            "default".to_string(),
-            std::env::temp_dir().to_string_lossy().to_string(),
-        );
-        
+        let session_dir = config.session_dir();
+        let session_file = session_dir.join(session_id).join("session.json");
+        let mut session = if session_file.exists() {
+            Session::load(session_id, &session_dir)
+                .await
+                .unwrap_or_else(|_| {
+                    Session::new(
+                        session_id.to_string(),
+                        "default".to_string(),
+                        std::env::temp_dir().to_string_lossy().to_string(),
+                    )
+                })
+        } else {
+            Session::new(
+                session_id.to_string(),
+                "default".to_string(),
+                std::env::temp_dir().to_string_lossy().to_string(),
+            )
+        };
+
         // Initialize provider and create adapter
         #[cfg(not(feature = "langchain"))]
         {
@@ -350,29 +423,28 @@ impl App {
         
         #[cfg(feature = "langchain")]
         let provider_adapter = {
-            // Try to get API key from config first, then environment variables
-            let api_key = config
-                .get_default_provider()
-                .and_then(|p| p.api_key)
+            let provider_info = config.get_default_provider();
+            let provider_type = provider_info
+                .as_ref()
+                .map(|p| p.provider_type.clone())
+                .unwrap_or_else(|| "openai".to_string());
+            let base_url = provider_info.as_ref().and_then(|p| p.base_url.clone());
+            let model = provider_info.as_ref().and_then(|p| p.model.clone());
+
+            let api_key = provider_info
+                .as_ref()
+                .and_then(|p| p.api_key.clone())
                 .or_else(|| std::env::var("OPENAI_API_KEY").ok())
                 .or_else(|| std::env::var("OPENCODE_OPENAI_API_KEY").ok())
                 .unwrap_or_else(|| "".to_string());
-            
-            if api_key.is_empty() {
-                tracing::warn!("No API key found in config or environment variables");
-                let _ = tx.send((session_id.to_string(), "Error: No API key configured. Press 'C' to configure provider and API key.".to_string()));
-                return Err(anyhow::anyhow!("No API key configured"));
-            }
 
-            // Get provider type from config, default to "openai"
-            let provider_type = config
-                .get_default_provider()
-                .map(|p| p.provider_type)
-                .unwrap_or_else(|| "openai".to_string());
-            
             let provider: Arc<dyn opencode_provider::Provider> = match provider_type.as_str() {
                 "openai" => {
-                    match opencode_provider::LangChainAdapter::from_openai(api_key) {
+                    if api_key.trim().is_empty() {
+                        let _ = tx.send((session_id.to_string(), "Error: No API key configured. Press 'C' to configure provider and API key.".to_string()));
+                        return Err(anyhow::anyhow!("No API key configured"));
+                    }
+                    match opencode_provider::LangChainAdapter::from_openai(api_key, base_url, model) {
                         Ok(adapter) => Arc::new(adapter),
                         Err(e) => {
                             let _ = tx.send((session_id.to_string(), format!("Error initializing OpenAI provider: {}", e)));
@@ -380,7 +452,33 @@ impl App {
                         }
                     }
                 }
+                "ollama" => {
+                    match opencode_provider::LangChainAdapter::from_ollama(base_url, model) {
+                        Ok(adapter) => Arc::new(adapter),
+                        Err(e) => {
+                            let _ = tx.send((session_id.to_string(), format!("Error initializing Ollama provider: {}", e)));
+                            return Err(anyhow::anyhow!("Failed to initialize provider: {}", e));
+                        }
+                    }
+                }
+                "qwen" => {
+                    if api_key.trim().is_empty() {
+                        let _ = tx.send((session_id.to_string(), "Error: No API key configured for Qwen. Press 'C' to configure.".to_string()));
+                        return Err(anyhow::anyhow!("No API key configured"));
+                    }
+                    match opencode_provider::LangChainAdapter::from_qwen(api_key, base_url, model) {
+                        Ok(adapter) => Arc::new(adapter),
+                        Err(e) => {
+                            let _ = tx.send((session_id.to_string(), format!("Error initializing Qwen provider: {}", e)));
+                            return Err(anyhow::anyhow!("Failed to initialize provider: {}", e));
+                        }
+                    }
+                }
                 "anthropic" => {
+                    if api_key.trim().is_empty() {
+                        let _ = tx.send((session_id.to_string(), "Error: No API key configured. Press 'C' to configure.".to_string()));
+                        return Err(anyhow::anyhow!("No API key configured"));
+                    }
                     match opencode_provider::LangChainAdapter::from_anthropic(api_key) {
                         Ok(adapter) => Arc::new(adapter),
                         Err(e) => {
@@ -394,7 +492,7 @@ impl App {
                     return Err(anyhow::anyhow!("Unsupported provider type: {}", provider_type));
                 }
             };
-            
+
             opencode_provider::ProviderAdapter::new(provider)
         };
         
@@ -418,21 +516,23 @@ impl App {
             };
             
             match agent_manager.process(&ctx, input, &mut session, &provider_adapter, &tools).await {
-            Ok(_) => {
-                // Get the last assistant message and send to UI
-                if let Some(last_msg) = session.messages.back() {
-                    if matches!(last_msg.role, opencode_core::session::MessageRole::Assistant) {
-                        let _ = tx.send((session_id.to_string(), last_msg.content.clone()));
+                Ok(_) => {
+                    if let Err(e) = session.save(&session_dir).await {
+                        tracing::warn!("Failed to save session: {}", e);
+                    }
+                    if let Some(last_msg) = session.messages.back() {
+                        if matches!(last_msg.role, opencode_core::session::MessageRole::Assistant) {
+                            let _ = tx.send((session_id.to_string(), last_msg.content.clone()));
+                        }
                     }
                 }
-            }
                 Err(e) => {
                     let _ = tx.send((session_id.to_string(), format!("Error: {}", e)));
                     return Err(anyhow::anyhow!("Agent processing failed: {}", e));
                 }
             }
         }
-        
+
         Ok(())
     }
 }

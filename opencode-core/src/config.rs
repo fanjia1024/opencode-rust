@@ -15,6 +15,8 @@ pub struct ProviderConfig {
     pub provider_type: String,
     pub api_key: Option<String>,
     pub base_url: Option<String>,
+    #[serde(default)]
+    pub model: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -60,9 +62,9 @@ impl Default for Config {
             providers: Vec::new(),
             agents: Vec::new(),
             storage: StorageConfig {
-                session_dir: dirs::data_dir()
-                    .unwrap_or_else(|| PathBuf::from("."))
-                    .join("opencode")
+                session_dir: std::env::current_dir()
+                    .unwrap_or_else(|_| PathBuf::from("."))
+                    .join(".opencode")
                     .join("sessions"),
                 config_dir: config_dir.clone(),
             },

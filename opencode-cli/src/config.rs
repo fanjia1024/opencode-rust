@@ -31,6 +31,7 @@ impl AppConfig {
                 provider_type: p.provider_type.clone(),
                 api_key: p.api_key.clone(),
                 base_url: p.base_url.clone(),
+                model: p.model.clone(),
             })
     }
 
@@ -40,6 +41,7 @@ impl AppConfig {
                 provider_type: p.provider_type.clone(),
                 api_key: p.api_key.clone(),
                 base_url: p.base_url.clone(),
+                model: p.model.clone(),
             }))
     }
 
@@ -49,12 +51,14 @@ impl AppConfig {
         provider_type: String,
         api_key: String,
         base_url: Option<String>,
+        model: Option<String>,
     ) -> Result<()> {
         let provider_config = CoreProviderConfig {
             id: provider_id.to_string(),
             provider_type,
             api_key: Some(api_key),
             base_url,
+            model,
         };
 
         if let Some(existing) = self.config.providers.iter_mut().find(|p| p.id == provider_id) {
@@ -80,6 +84,7 @@ pub struct ProviderInfo {
     pub provider_type: String,
     pub api_key: Option<String>,
     pub base_url: Option<String>,
+    pub model: Option<String>,
 }
 
 impl Default for AppConfig {
