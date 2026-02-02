@@ -70,7 +70,7 @@ impl Provider for LangChainAdapter {
         &self,
         _request: GenerateRequest,
     ) -> Result<Box<dyn Stream<Item = Result<crate::trait_::Chunk>> + Send + Unpin>> {
-        Err(Error::Provider("Streaming not yet implemented with langchain-rust".to_string()))
+        Err(Error::Provider("Streaming not yet implemented with langchain-ai-rust".to_string()))
     }
 
     fn models(&self) -> &[crate::trait_::ModelInfo] {

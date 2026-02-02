@@ -29,5 +29,5 @@ syntect = { workspace = true }
 unicode-width = "0.1"
 
 [features]
-default = []
+default = ["langchain"]
 langchain = ["opencode-provider/langchain"]

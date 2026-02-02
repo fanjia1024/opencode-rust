@@ -70,6 +70,10 @@ impl AppConfig {
     pub fn config_dir() -> Result<PathBuf> {
         CoreConfig::config_dir().map_err(|e| anyhow::anyhow!("{}", e))
     }
+
+    pub fn session_dir(&self) -> PathBuf {
+        self.config.storage.session_dir.clone()
+    }
 }
 
 pub struct ProviderInfo {

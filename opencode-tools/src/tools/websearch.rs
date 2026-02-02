@@ -65,7 +65,7 @@ impl Tool for WebSearchTool {
 
         Ok(ToolResult {
             title: format!("Web Search: {}", args.query),
-            output: format!("Search results for: {}\n\n(Note: This is a placeholder implementation. Real web search requires API integration.)", args.query),
+            output: format!("Search results for: {}\n\n(Request completed; results are not parsed. For production use, integrate a search API such as Tavily or SerpAPI.)", args.query),
             metadata: serde_json::json!({
                 "query": args.query,
                 "max_results": max_results

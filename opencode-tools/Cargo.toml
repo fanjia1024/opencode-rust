@@ -23,7 +23,7 @@ reqwest = { workspace = true }
 urlencoding = "2.1"
 
 [features]
-default = []
+default = ["langchain"]
 langchain = ["opencode-provider/langchain"]
 
 [dependencies.opencode-provider]

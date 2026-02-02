@@ -1,6 +1,8 @@
 use crate::tui::state::{AppState, Screen, DialogState};
 use crate::tui::screens::{home::HomeScreen, session::SessionScreen};
+use crate::tui::screens::home::SessionInfo;
 use crate::tui::screens::dialogs::provider::{ProviderDialog, ProviderConfig, DialogAction};
+use crate::tui::sync::{StateSync, SessionListItem};
 use crate::config::AppConfig;
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
@@ -26,6 +28,8 @@ pub struct App {
     sessions: RefCell<HashMap<String, Session>>,
     response_tx: mpsc::UnboundedSender<(String, String)>, // (session_id, response)
     response_rx: RefCell<mpsc::UnboundedReceiver<(String, String)>>,
+    session_list_rx: RefCell<mpsc::UnboundedReceiver<Vec<SessionListItem>>>,
+    state_sync: StateSync,
     config: RefCell<AppConfig>,
     provider_dialog: RefCell<Option<ProviderDialog>>,
 }
@@ -33,7 +37,10 @@ pub struct App {
 impl App {
     pub fn new() -> Self {
         let (tx, rx) = mpsc::unbounded_channel();
+        let (session_list_tx, session_list_rx) = mpsc::unbounded_channel();
         let config = AppConfig::load().unwrap_or_else(|_| AppConfig::default());
+        let session_dir = config.session_dir();
+        let state_sync = StateSync::new(session_dir, session_list_tx);
         Self {
             state: AppState::default(),
             should_quit: false,
@@ -43,6 +50,8 @@ impl App {
             sessions: RefCell::new(HashMap::new()),
             response_tx: tx,
             response_rx: RefCell::new(rx),
+            session_list_rx: RefCell::new(session_list_rx),
+            state_sync,
             config: RefCell::new(config),
             provider_dialog: RefCell::new(None),
         }
@@ -70,6 +79,25 @@ impl App {
                     }
                     rx = self.response_rx.borrow_mut(); // Re-borrow for next iteration
                 }
+            }
+
+            // Apply session list updates from StateSync
+            {
+                let mut list_rx = self.session_list_rx.borrow_mut();
+                while let Ok(list) = list_rx.try_recv() {
+                    self.home_screen.sessions = list
+                        .into_iter()
+                        .map(|s| SessionInfo {
+                            id: s.id,
+                            title: s.title,
+                            updated: s.updated,
+                        })
+                        .collect();
+                }
+            }
+
+            if let Err(e) = self.state_sync.sync_if_needed().await {
+                tracing::debug!("StateSync: {}", e);
             }
 
             if event::poll(std::time::Duration::from_millis(16))? {
