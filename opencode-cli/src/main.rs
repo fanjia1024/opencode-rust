@@ -22,7 +22,7 @@ enum Commands {
         /// The command to run
         command: String,
     },
-    /// Serve the HTTP API
+    /// (Experimental) HTTP server – planned removal; use TUI or run for CLI
     Serve {
         /// Port to listen on
         #[arg(short, long, default_value_t = 8080)]

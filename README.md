@@ -1,14 +1,26 @@
-# OpenCode Rust Implementation
+# OpenCode Rust
 
-Rust implementation of OpenCode for better performance and resource efficiency. It ships with **langchain-ai-rust** as the default AI provider, so you get working LLM integration out of the box.
+**Local AI coding assistant in the terminal.** CLI + TUI only — no Server, no SDK.
+
+## Use cases
+
+- **Chat with an Agent in the terminal** – Discuss design and implementation, review diffs, iterate on code.
+- **One-off Q&A** – Ask a question from the shell or scripts; `opencode run "your question"`.
+- **Local conversation history** – Sessions live under `.opencode` in your project; pick up where you left off.
+
+## Two ways to use
+
+- **TUI (main)** – `opencode tui` — Home (session list / new session), Chat (conversation + input), Config (Provider / API key) via **`C`**.
+- **One-off** – `opencode run "your question"` — Single question, scriptable. (May be renamed to `ask` later.)
+
+We do **not** provide an HTTP API as a main product. The `serve` subcommand is **experimental and planned for removal**; use TUI or `run` instead.
 
 ## Features
 
-- **TUI** – Terminal UI with syntax highlighting, virtual scrolling, Home and Session screens, and a session list synced from disk (StateSync).
-- **Default AI Provider** – Built on **langchain-ai-rust 5.0.1**, with support for OpenAI and Anthropic (via configuration).
-- **Tool system** – 16+ tools for code, files, web search, and more.
-- **Session management** – Sessions are persisted (save/load) and the Home screen list refreshes from the session directory.
-- **Provider abstraction** – Pluggable providers; configure API key and provider type in TUI or via config.
+- **TUI-first** – Home, Chat, and Config modal; session list; syntax highlighting and virtual scrolling.
+- **Session = chat history** – Persisted under `.opencode/sessions`; list refreshes from disk (StateSync; may be simplified later).
+- **Built-in tool set** – File read/write, grep, search, edit, patch, etc.; no public Registry API, no dynamic loading.
+- **Default AI provider** – **langchain-ai-rust 5.0.1**; OpenAI and Anthropic via config. Other providers may be marked experimental.
 - **Caching** – LRU cache for performance.
 
 ## Requirements
@@ -61,7 +73,7 @@ cargo run --bin opencode -- tui
 ## Configuration
 
 - **Provider** – The app reads the default provider from config or environment. In the TUI, press **`C`** to open the Provider dialog and set provider type (e.g. OpenAI, Anthropic), API key, and optional base URL. Config is stored under the platform config directory (e.g. `~/.config/opencode` on Linux/macOS).
-- **Session directory** – Sessions are stored under the configured `session_dir` (e.g. under the app data directory). The Home screen session list is refreshed from this directory about every 5 seconds (StateSync).
+- **Session directory** – Sessions are stored under `.opencode/sessions` in the current directory. The Home screen session list is refreshed from this directory (StateSync; may be simplified to event-driven or manual refresh later).
 
 ## TUI usage
 
@@ -87,23 +99,21 @@ cargo run --bin opencode -- tui
 After building:
 
 ```bash
-# Start the TUI
+# Start the TUI (main)
 cargo run --bin opencode -- tui
 
-# Run a single command
-cargo run --bin opencode -- run "your command"
-
-# Start the HTTP server (default port 8080)
-cargo run --bin opencode -- serve --port 8080
+# One-off Q&A (scriptable)
+cargo run --bin opencode -- run "your question"
 ```
 
 With an installed `opencode` binary:
 
 ```bash
 opencode tui
-opencode run "your command"
-opencode serve --port 8080
+opencode run "your question"
 ```
+
+**Note:** `opencode serve` is **experimental and planned for removal**. Do not rely on it; use TUI or `run` instead. See [PROJECT_SCOPE.md](PROJECT_SCOPE.md).
 
 ## Project structure
 
@@ -125,9 +135,9 @@ For more detail, see `SETUP_API_KEY.md` and `USAGE.md`.
 
 ## Status
 
-- Core TUI, session management, and StateSync-based session list are in place.
+- Core TUI, session management, and session list (StateSync) are in place.
 - **langchain-ai-rust** is the default built-in provider (OpenAI and Anthropic via configuration).
-- Session persistence and provider configuration (including TUI dialog) work with the current codebase.
+- Session persistence and provider configuration (TUI dialog) work. Scope and convergence plans are in [PROJECT_SCOPE.md](PROJECT_SCOPE.md).
 
 ## Documentation
 
