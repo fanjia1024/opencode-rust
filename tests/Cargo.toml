@@ -1,0 +1,14 @@
+[package]
+name = "opencode-tests"
+version = "0.1.0"
+edition = "2021"
+
+[[test]]
+name = "integration"
+path = "integration/mod.rs"
+
+[dependencies]
+opencode-core = { path = "../opencode-core" }
+opencode-tools = { path = "../opencode-tools" }
+tokio = { version = "1.40", features = ["full"] }
+uuid = { version = "1.10", features = ["v4"] }

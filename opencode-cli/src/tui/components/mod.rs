@@ -1,0 +1,18 @@
+// UI Components module
+pub mod border;
+pub mod code_block;
+pub mod diff_view;
+pub mod footer;
+pub mod header;
+pub mod link;
+pub mod logo;
+pub mod message_view;
+pub mod prompt;
+pub mod sidebar;
+pub mod spinner;
+pub mod syntax_highlighter;
+pub mod tips;
+pub mod todo_item;
+pub mod toast;
+pub mod tool_result;
+pub mod virtual_scroll;

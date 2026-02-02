@@ -1,0 +1,33 @@
+[package]
+name = "opencode-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "opencode"
+path = "src/main.rs"
+
+[dependencies]
+opencode-core = { path = "../opencode-core" }
+opencode-provider = { path = "../opencode-provider" }
+opencode-tools = { path = "../opencode-tools" }
+tokio = { workspace = true, features = ["full"] }
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+ratatui = { workspace = true }
+crossterm = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = { workspace = true }
+syntect = { workspace = true }
+unicode-width = "0.1"
+
+[features]
+default = []
+langchain = ["opencode-provider/langchain"]
