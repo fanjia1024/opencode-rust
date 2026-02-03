@@ -13,20 +13,26 @@ OpenCode TUI Help
 
 Keyboard Shortcuts:
   q          - Quit application
-  n          - New session
+  n          - New session (Home)
   Esc        - Go back / Close dialog
-  Tab        - Switch agent
   Enter      - Confirm / Submit
   Arrow Keys - Navigate
+
+  A          - Agents: list and switch current agent (build, plan, general)
+  C          - Provider config: edit default provider (type, model, API key)
+  P          - Providers: list configured providers, set default, edit (e)
+  H / ?      - Help (this screen)
 
 Agents:
   build      - Full access agent for development
   plan       - Read-only agent for analysis
   general    - General purpose agent
 
+Providers / Model:
+  Current model is set in Provider config (C). List providers with P.
+
 Commands:
-  Use @general to invoke the general subagent
-  Use @plan to switch to plan agent
+  Sessions list / Config show: use CLI (opencode sessions list, opencode config show).
 "#
             .trim()
             .to_string(),

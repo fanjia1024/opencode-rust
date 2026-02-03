@@ -18,6 +18,8 @@ pub struct ProviderDialog {
     base_url: String,
     input_mode: InputMode,
     error_message: Option<String>,
+    /// When editing an existing provider (e.g. from Providers list), save uses this id.
+    pub editing_provider_id: Option<String>,
 }
 
 impl ProviderDialog {
@@ -35,6 +37,7 @@ impl ProviderDialog {
             base_url: String::new(),
             input_mode: InputMode::SelectProvider,
             error_message: None,
+            editing_provider_id: None,
         }
     }
 
@@ -59,6 +62,19 @@ impl ProviderDialog {
         if let Some(url) = base_url {
             dialog.base_url = url;
         }
+        dialog
+    }
+
+    /// Open for editing an existing provider by id (from Providers list).
+    pub fn with_initial_values_for_edit(
+        provider_id: String,
+        provider: Option<String>,
+        model: Option<String>,
+        api_key: Option<String>,
+        base_url: Option<String>,
+    ) -> Self {
+        let mut dialog = Self::with_initial_values(provider, model, api_key, base_url);
+        dialog.editing_provider_id = Some(provider_id);
         dialog
     }
 
@@ -241,6 +257,7 @@ impl ProviderDialog {
                         self.api_key.clone()
                     };
                     DialogAction::Save(ProviderConfig {
+                        provider_id: self.editing_provider_id.clone(),
                         provider,
                         api_key,
                         base_url: if self.base_url.trim().is_empty() { None } else { Some(self.base_url.trim().to_string()) },
@@ -291,6 +308,7 @@ pub enum DialogAction {
 }
 
 pub struct ProviderConfig {
+    pub provider_id: Option<String>,
     pub provider: String,
     pub api_key: String,
     pub base_url: Option<String>,

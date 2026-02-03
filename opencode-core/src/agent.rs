@@ -123,7 +123,17 @@ impl Agent for BuildAgent {
             max_tokens: Some(4096),
         };
 
-        let response = provider.generate(request).await?;
+        tracing::debug!(input_len = input.len(), "calling provider.generate");
+        let response = match provider.generate(request).await {
+            Ok(r) => {
+                tracing::debug!(response_len = r.content.len(), "provider.generate returned");
+                r
+            }
+            Err(e) => {
+                tracing::error!(error = %e, "provider.generate failed");
+                return Err(e);
+            }
+        };
 
         let assistant_message = Message {
             role: Role::Assistant,
@@ -145,6 +155,9 @@ impl Agent for BuildAgent {
     }
 }
 
+/// Plan agent: currently delegates to BuildAgent (same processing path).
+/// If the product goal is read-only analysis, tools can be filtered in the CLI
+/// (e.g. in process_message_async when agent_name == "plan") to only pass read-only tools.
 pub struct PlanAgent;
 
 impl PlanAgent {
@@ -163,7 +176,9 @@ impl Agent for PlanAgent {
         provider: &dyn Provider,
         tools: &[Arc<dyn Tool>],
     ) -> Result<()> {
-        BuildAgent::new().process(ctx, input, session, provider, tools).await
+        BuildAgent::new()
+            .process(ctx, input, session, provider, tools)
+            .await
     }
 
     fn name(&self) -> &str {
@@ -193,7 +208,9 @@ impl Agent for GeneralAgent {
         provider: &dyn Provider,
         tools: &[Arc<dyn Tool>],
     ) -> Result<()> {
-        BuildAgent::new().process(ctx, input, session, provider, tools).await
+        BuildAgent::new()
+            .process(ctx, input, session, provider, tools)
+            .await
     }
 
     fn name(&self) -> &str {

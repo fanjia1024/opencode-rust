@@ -8,6 +8,7 @@ repository.workspace = true
 
 [dependencies]
 opencode-core = { path = "../opencode-core" }
+opencode-provider = { path = "../opencode-provider" }
 tokio = { workspace = true, features = ["full"] }
 async-trait = { workspace = true }
 serde = { workspace = true }
@@ -21,12 +22,4 @@ globset = { workspace = true }
 schemars = { workspace = true }
 reqwest = { workspace = true }
 urlencoding = "2.1"
-
-[features]
-default = ["langchain"]
-langchain = ["opencode-provider/langchain"]
-
-[dependencies.opencode-provider]
-path = "../opencode-provider"
-optional = true
 

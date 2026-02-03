@@ -1,0 +1,19 @@
+{
+  "id": "12624b6f-786c-4e6f-87ad-40f47050a47a",
+  "messages": [
+    {
+      "role": "User",
+      "content": "hello",
+      "created_at": "2026-02-03T05:59:18.984234Z",
+      "meta": null
+    },
+    {
+      "role": "Assistant",
+      "content": "<think>The user just said \"hello\" which is a simple greeting. I should respond in a friendly and helpful manner, introducing myself and offering assistance.\n</think>\nHello! I'm MiniMax-M2.1, built by MiniMax. How can I help you today?\n",
+      "created_at": "2026-02-03T05:59:20.186247Z",
+      "meta": null
+    }
+  ],
+  "created_at": "2026-02-03T05:59:18.983165Z",
+  "updated_at": "2026-02-03T05:59:20.186251Z"
+}

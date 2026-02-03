@@ -1,27 +1,19 @@
-#[cfg(feature = "langchain")]
-use opencode_core::tool::{Tool, ToolContext};
-#[cfg(feature = "langchain")]
-use serde_json::Value;
-#[cfg(feature = "langchain")]
-use std::sync::Arc;
-#[cfg(feature = "langchain")]
 use async_trait::async_trait;
-#[cfg(feature = "langchain")]
 use langchain_ai_rust::error::ToolError as LangChainToolError;
+use opencode_core::tool::{Tool, ToolContext};
+use serde_json::Value;
+use std::sync::Arc;
 
-#[cfg(feature = "langchain")]
 pub struct LangChainToolAdapter {
     tool: Arc<dyn Tool>,
 }
 
-#[cfg(feature = "langchain")]
 impl LangChainToolAdapter {
     pub fn new(tool: Arc<dyn Tool>) -> Self {
         Self { tool }
     }
 }
 
-#[cfg(feature = "langchain")]
 #[async_trait]
 impl langchain_ai_rust::tools::Tool for LangChainToolAdapter {
     fn name(&self) -> String {
@@ -57,15 +49,5 @@ impl langchain_ai_rust::tools::Tool for LangChainToolAdapter {
             }
             Err(e) => Err(LangChainToolError::ExecutionError(e.to_string())),
         }
-    }
-}
-
-#[cfg(not(feature = "langchain"))]
-pub struct LangChainToolAdapter;
-
-#[cfg(not(feature = "langchain"))]
-impl LangChainToolAdapter {
-    pub fn new(_tool: std::sync::Arc<dyn opencode_core::tool::Tool>) -> Self {
-        Self
     }
 }

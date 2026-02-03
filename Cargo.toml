@@ -12,7 +12,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["OpenCode Team"]
 license = "MIT"
-repository = "https://github.com/anomalyco/opencode"
+repository = "https://github.com/fanjia1024/opencode-rust"
 
 [workspace.dependencies]
 # Async runtime
@@ -55,8 +55,7 @@ reqwest = { version = "0.12", features = ["json", "stream"] }
 uuid = { version = "1.10", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 
-# langchain-rust (from git, optional feature)
-# langchain-rust = { git = "https://github.com/fanjia1024/langchain-rust", branch = "main" }
+# langchain-ai-rust is a required dependency in opencode-provider (version 5.0.1, crates.io only)
 
 # Syntax highlighting
 syntect = "5.0"

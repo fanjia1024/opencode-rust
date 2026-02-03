@@ -13,8 +13,20 @@ pub enum Screen {
 
 #[derive(Clone)]
 pub enum DialogState {
-    Alert { message: String },
-    Confirm { message: String },
-    Prompt { message: String, input: String },
+    Alert {
+        message: String,
+    },
+    Confirm {
+        message: String,
+    },
+    Prompt {
+        message: String,
+        input: String,
+    },
     Provider,
+    Agent,
+    ProvidersList,
+    Help,
+    /// Command list (slash); carries session_id to restore when closing.
+    Command(String),
 }

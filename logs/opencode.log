@@ -1,0 +1,47 @@
+[INFO] 2026-02-03 17:59:18 app.rs 621:command_dialog opened98ebc1fa-839d-4e6c-ab7e-64c0b1337384
+[INFO] 2026-02-03 17:59:19 app.rs 367:command_dialog keyEnter
+[INFO] 2026-02-03 17:59:19 command.rs 163:command_dialog Enter07
+[INFO] 2026-02-03 17:59:19 command.rs 168:command_dialog returning selectioninit/init
+[INFO] 2026-02-03 17:59:19 app.rs 374:command_dialog actionidinitlabel/init
+[INFO] 2026-02-03 17:59:19 app.rs 376:command id is init, running init_agents_mdinit
+[INFO] 2026-02-03 17:59:19 app.rs 379:calling init_agents_md/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-03 17:59:19 init.rs 389:init_agents_md called/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-03 17:59:19 init.rs 391:AGENTS.md path/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
+[INFO] 2026-02-03 17:59:19 init.rs 111:scan_project start/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-03 17:59:19 init.rs 139:scan_project donetree_lines88members4
+[INFO] 2026-02-03 17:59:19 init.rs 394:scan completed, generating content
+[INFO] 2026-02-03 17:59:19 init.rs 312:Skipping DeepAgent for unsupported modelMiniMax-M2
+[INFO] 2026-02-03 17:59:58 init.rs 374:LLM generate ok, writing AGENTS.md
+[INFO] 2026-02-03 17:59:58 init.rs 401:writing AGENTS.md/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
+[INFO] 2026-02-03 17:59:58 init.rs 403:AGENTS.md written/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
+[INFO] 2026-02-03 18:05:30 app.rs 621:command_dialog openedbbd0c4bd-aceb-48b8-b715-23f1f59e08b8
+[INFO] 2026-02-03 18:05:30 app.rs 367:command_dialog keyEnter
+[INFO] 2026-02-03 18:05:30 command.rs 163:command_dialog Enter07
+[INFO] 2026-02-03 18:05:30 command.rs 168:command_dialog returning selectioninit/init
+[INFO] 2026-02-03 18:05:30 app.rs 374:command_dialog actionidinitlabel/init
+[INFO] 2026-02-03 18:05:30 app.rs 376:command id is init, running init_agents_mdinit
+[INFO] 2026-02-03 18:05:30 app.rs 379:calling init_agents_md/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-03 18:05:30 init.rs 405:init_agents_md called/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-03 18:05:30 init.rs 407:AGENTS.md path/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
+[INFO] 2026-02-03 18:05:30 init.rs 111:scan_project start/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-03 18:05:30 init.rs 139:scan_project donetree_lines88members4
+[INFO] 2026-02-03 18:05:30 init.rs 410:scan completed, generating content
+[INFO] 2026-02-03 18:05:30 init.rs 301:trying DeepAgent for initopenai
+[INFO] 2026-02-03 18:05:31 init.rs 321:DeepAgent failed, falling back to single generateProvider error: DeepAgent invoke failed: Agent error: Error in agent planning: Chain error: LLM error: OpenAI error: invalid_request_error: Incorrect API key provided: sk-J4GfF***************************************62A8. You can find your API key at https://platform.openai.com/account/api-keys. (code: invalid_api_key)
+[INFO] 2026-02-03 18:05:51 init.rs 390:LLM generate ok, writing AGENTS.md
+[INFO] 2026-02-03 18:05:51 init.rs 417:writing AGENTS.md/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
+[INFO] 2026-02-03 18:05:51 init.rs 419:AGENTS.md written/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
+[INFO] 2026-02-03 18:14:34 app.rs 621:command_dialog openedaa221acb-b9b2-4762-b233-7924021f2998
+[INFO] 2026-02-03 18:14:34 app.rs 367:command_dialog keyEnter
+[INFO] 2026-02-03 18:14:34 command.rs 163:command_dialog Enter07
+[INFO] 2026-02-03 18:14:34 command.rs 168:command_dialog returning selectioninit/init
+[INFO] 2026-02-03 18:14:34 app.rs 374:command_dialog actionidinitlabel/init
+[INFO] 2026-02-03 18:14:34 app.rs 376:command id is init, running init_agents_mdinit
+[03 18:14:34 init.rs 111:scan_project start/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-03 18:14:34 init.rs 139:scan_project donetree_lines88members4
+[INFO] 2026-02-03 18:14:34 init.rs 414:scan completed, generating content
+[INFO] 2026-02-03 18:14:34 init.rs 305:trying DeepAgent for initopenai
+[INFO] 2026-02-03 18:14:58 init.rs 315:DeepAgent wrote AGENTS.mdINFO] 2026-02-03 18:14:34 app.rs 379:calling init_agents_md/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-03 18:14:34 init.rs 409:init_agents_md called/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-03 18:14:34 init.rs 411:AGENTS.md path/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
+[INFO] 2026-02-

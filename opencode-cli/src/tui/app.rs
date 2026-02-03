@@ -1,6 +1,11 @@
+use crate::commands::init;
 use crate::config::AppConfig;
 use crate::session_store;
-use crate::tui::screens::dialogs::provider::{ProviderDialog, ProviderConfig, DialogAction};
+use crate::tui::screens::dialogs::agent::{AgentDialog, AgentDialogAction};
+use crate::tui::screens::dialogs::command::CommandDialog;
+use crate::tui::screens::dialogs::help::HelpDialog;
+use crate::tui::screens::dialogs::provider::{DialogAction, ProviderConfig, ProviderDialog};
+use crate::tui::screens::dialogs::providers_list::{ProvidersListAction, ProvidersListDialog};
 use crate::tui::screens::home::SessionInfo;
 use crate::tui::screens::{home::HomeScreen, session::SessionScreen};
 use crate::tui::state::{AppState, DialogState, Screen};
@@ -9,18 +14,21 @@ use crate::tui::theme::Theme;
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use crossterm::execute;
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
-use ratatui::prelude::*;
-use ratatui::widgets;
-use std::io;
-use std::cell::RefCell;
-use std::path::Path;
-use std::sync::Arc;
-use std::collections::HashMap;
-use tokio::sync::mpsc;
-use opencode_core::AgentManager;
+use crossterm::terminal::{
+    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+};
 use opencode_core::agent::Context;
 use opencode_core::session::Session;
+use opencode_core::AgentManager;
+use ratatui::prelude::*;
+use ratatui::widgets;
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::env;
+use std::io;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use tokio::sync::mpsc;
 
 pub struct App {
     state: AppState,
@@ -35,6 +43,10 @@ pub struct App {
     state_sync: StateSync,
     config: RefCell<AppConfig>,
     provider_dialog: RefCell<Option<ProviderDialog>>,
+    agent_dialog: RefCell<Option<AgentDialog>>,
+    providers_list_dialog: RefCell<Option<ProvidersListDialog>>,
+    help_dialog: RefCell<Option<HelpDialog>>,
+    command_dialog: RefCell<Option<CommandDialog>>,
 }
 
 fn initial_session_id(session_dir: &Path) -> String {
@@ -99,6 +111,10 @@ impl App {
             state_sync,
             config: RefCell::new(config),
             provider_dialog: RefCell::new(None),
+            agent_dialog: RefCell::new(None),
+            providers_list_dialog: RefCell::new(None),
+            help_dialog: RefCell::new(None),
+            command_dialog: RefCell::new(None),
         }
     }
 
@@ -130,6 +146,7 @@ impl App {
             {
                 let mut rx = self.response_rx.borrow_mut();
                 while let Ok((session_id, response)) = rx.try_recv() {
+                    tracing::debug!(session_id = %session_id, response_len = response.len(), "received response, updating UI");
                     drop(rx); // Release borrow before borrowing session_screen
                     if let Some(screen) = self.session_screen.borrow_mut().as_mut() {
                         if screen.session_id == session_id {
@@ -180,24 +197,63 @@ impl App {
 
     fn ui(&self, f: &mut Frame) {
         let theme = Theme::default();
-        
+
         match &self.state.current_screen {
             Screen::Home => {
                 self.home_screen.render(f, f.size(), &theme);
             }
             Screen::Session(session_id) => {
+                let current_agent = self.agent_manager.current_name();
+                let current_model = self
+                    .config
+                    .borrow()
+                    .get_default_provider()
+                    .and_then(|p| p.model.clone());
                 let mut session_screen = self.session_screen.borrow_mut();
                 if let Some(screen) = session_screen.as_mut() {
-                    screen.render(f, f.size(), &theme);
+                    screen.render(
+                        f,
+                        f.size(),
+                        &theme,
+                        Some(current_agent),
+                        current_model.as_deref(),
+                    );
                 } else {
                     let mut new_screen = SessionScreen::new(session_id.clone());
-                    new_screen.render(f, f.size(), &theme);
+                    new_screen.render(
+                        f,
+                        f.size(),
+                        &theme,
+                        Some(current_agent),
+                        current_model.as_deref(),
+                    );
                 }
             }
             Screen::Dialog(dialog_state) => {
+                let theme = Theme::default();
                 match dialog_state.as_ref() {
                     DialogState::Provider => {
                         if let Some(dialog) = self.provider_dialog.borrow().as_ref() {
+                            dialog.render(f, f.size());
+                        }
+                    }
+                    DialogState::Agent => {
+                        if let Some(dialog) = self.agent_dialog.borrow().as_ref() {
+                            dialog.render(f, f.size(), &theme);
+                        }
+                    }
+                    DialogState::ProvidersList => {
+                        if let Some(dialog) = self.providers_list_dialog.borrow().as_ref() {
+                            dialog.render(f, f.size(), &theme);
+                        }
+                    }
+                    DialogState::Help => {
+                        if let Some(dialog) = self.help_dialog.borrow().as_ref() {
+                            dialog.render(f, f.size());
+                        }
+                    }
+                    DialogState::Command(_) => {
+                        if let Some(dialog) = self.command_dialog.borrow().as_ref() {
                             dialog.render(f, f.size());
                         }
                     }
@@ -213,16 +269,150 @@ impl App {
     }
 
     fn handle_key(&mut self, key: KeyCode) -> Result<()> {
-        // Check if we're in a dialog first (borrow only to get action, then release before mutating)
+        use crossterm::event::KeyEvent;
+        let key_event = KeyEvent {
+            code: key,
+            modifiers: crossterm::event::KeyModifiers::empty(),
+            kind: KeyEventKind::Press,
+            state: crossterm::event::KeyEventState::empty(),
+        };
+
+        fn restore_screen(state: &mut Screen) {
+            *state = match state {
+                Screen::Home => Screen::Home,
+                Screen::Session(id) => Screen::Session(id.clone()),
+                _ => Screen::Home,
+            };
+        }
+
         if let Screen::Dialog(dialog_state) = &self.state.current_screen {
-            if let DialogState::Provider = dialog_state.as_ref() {
-                use crossterm::event::KeyEvent;
-                let key_event = KeyEvent {
-                    code: key,
-                    modifiers: crossterm::event::KeyModifiers::empty(),
-                    kind: KeyEventKind::Press,
-                    state: crossterm::event::KeyEventState::empty(),
+            if let DialogState::Agent = dialog_state.as_ref() {
+                let action = self
+                    .agent_dialog
+                    .borrow_mut()
+                    .as_mut()
+                    .map(|d| d.handle_key(key_event));
+                if let Some(action) = action {
+                    match action {
+                        AgentDialogAction::Switch(name) => {
+                            if let Err(e) = self.agent_manager.switch(&name) {
+                                tracing::error!("Failed to switch agent: {}", e);
+                            }
+                            restore_screen(&mut self.state.current_screen);
+                            *self.agent_dialog.borrow_mut() = None;
+                        }
+                        AgentDialogAction::Cancel => {
+                            restore_screen(&mut self.state.current_screen);
+                            *self.agent_dialog.borrow_mut() = None;
+                        }
+                        AgentDialogAction::Continue => {}
+                    }
+                }
+                return Ok(());
+            }
+
+            if let DialogState::ProvidersList = dialog_state.as_ref() {
+                let (action, edit_provider_id) = {
+                    if let Some(dialog) = self.providers_list_dialog.borrow_mut().as_mut() {
+                        let action = dialog.handle_key(key_event);
+                        let edit_id = match &action {
+                            ProvidersListAction::Edit(i) => {
+                                dialog.items.get(*i).map(|p| p.id.clone())
+                            }
+                            _ => None,
+                        };
+                        (action, edit_id)
+                    } else {
+                        (ProvidersListAction::Continue, None)
+                    }
                 };
+                match action {
+                    ProvidersListAction::SetDefault(i) => {
+                        let items = self.config.borrow().list_providers();
+                        if let Some(item) = items.get(i) {
+                            let mut config = self.config.borrow_mut();
+                            let _ = config.set_default_provider_id(&item.id);
+                        }
+                        if let Some(dialog) = self.providers_list_dialog.borrow_mut().as_mut() {
+                            let items = self.config.borrow().list_providers();
+                            *dialog = ProvidersListDialog::new(items);
+                        }
+                    }
+                    ProvidersListAction::Edit(_) => {
+                        if let Some(id) = edit_provider_id {
+                            self.providers_list_dialog.borrow_mut().take();
+                            restore_screen(&mut self.state.current_screen);
+                            self.open_provider_dialog(Some(&id));
+                        }
+                    }
+                    ProvidersListAction::Cancel => {
+                        restore_screen(&mut self.state.current_screen);
+                        *self.providers_list_dialog.borrow_mut() = None;
+                    }
+                    ProvidersListAction::Continue => {}
+                }
+                return Ok(());
+            }
+
+            if let DialogState::Help = dialog_state.as_ref() {
+                if key == KeyCode::Esc {
+                    restore_screen(&mut self.state.current_screen);
+                    *self.help_dialog.borrow_mut() = None;
+                }
+                return Ok(());
+            }
+
+            if let DialogState::Command(session_id) = dialog_state.as_ref() {
+                let session_id = session_id.clone();
+                tklog::info!("command_dialog key", format!("{:?}", key_event.code));
+                let action = self
+                    .command_dialog
+                    .borrow_mut()
+                    .as_mut()
+                    .and_then(|d| d.handle_key(key_event));
+                if let Some((id, label)) = action {
+                    tklog::info!("command_dialog action", "id", &id, "label", &label);
+                    if id == "init" {
+                        tklog::info!("command id is init, running init_agents_md", &id);
+                        let project_root: PathBuf =
+                            env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+                        tklog::info!("calling init_agents_md", project_root.display());
+                        if let Some(screen) = self.session_screen.borrow_mut().as_mut() {
+                            screen.set_processing(true);
+                        }
+                        let tx = self.response_tx.clone();
+                        let session_id_for_task = session_id.clone();
+                        let rt = tokio::runtime::Handle::try_current().unwrap_or_else(|_| {
+                            tokio::runtime::Runtime::new().unwrap().handle().clone()
+                        });
+                        rt.spawn(async move {
+                            let r = init::init_agents_md(&project_root, false).await;
+                            let msg = match r {
+                                Ok(true) => "AGENTS.md created or updated.".to_string(),
+                                Ok(false) => "AGENTS.md already exists.".to_string(),
+                                Err(e) => format!("Error: {}", e),
+                            };
+                            let _ = tx.send((session_id_for_task, msg));
+                        });
+                    } else {
+                        if let Some(screen) = self.session_screen.borrow_mut().as_mut() {
+                            screen.input.push_str(&label);
+                            screen.input.push(' ');
+                        }
+                    }
+                    self.state.current_screen = Screen::Session(session_id);
+                    *self.command_dialog.borrow_mut() = None;
+                    return Ok(());
+                }
+                if key == KeyCode::Esc {
+                    self.state.current_screen = Screen::Session(session_id);
+                    *self.command_dialog.borrow_mut() = None;
+                    return Ok(());
+                }
+                return Ok(());
+            }
+
+            if let DialogState::Provider = dialog_state.as_ref() {
                 let action = {
                     if let Some(dialog) = self.provider_dialog.borrow_mut().as_mut() {
                         Some(dialog.handle_key(key_event))
@@ -237,21 +427,13 @@ impl App {
                             if let Err(e) = self.save_provider_config(&config) {
                                 tracing::error!("Failed to save provider config: {}", e);
                             } else {
-                                self.state.current_screen = match &self.state.current_screen {
-                                    Screen::Home => Screen::Home,
-                                    Screen::Session(id) => Screen::Session(id.clone()),
-                                    _ => Screen::Home,
-                                };
+                                restore_screen(&mut self.state.current_screen);
                                 *self.provider_dialog.borrow_mut() = None;
                             }
                             return Ok(());
                         }
                         DialogAction::Cancel => {
-                            self.state.current_screen = match &self.state.current_screen {
-                                Screen::Home => Screen::Home,
-                                Screen::Session(id) => Screen::Session(id.clone()),
-                                _ => Screen::Home,
-                            };
+                            restore_screen(&mut self.state.current_screen);
                             *self.provider_dialog.borrow_mut() = None;
                             return Ok(());
                         }
@@ -267,8 +449,19 @@ impl App {
                 return Ok(());
             }
             KeyCode::Char('c') => {
-                // Open provider config dialog
-                self.open_provider_dialog();
+                self.open_provider_dialog(None);
+                return Ok(());
+            }
+            KeyCode::Char('a') => {
+                self.open_agent_dialog();
+                return Ok(());
+            }
+            KeyCode::Char('p') => {
+                self.open_providers_list_dialog();
+                return Ok(());
+            }
+            KeyCode::Char('h') | KeyCode::Char('H') | KeyCode::Char('?') => {
+                self.open_help_dialog();
                 return Ok(());
             }
             _ => {}
@@ -276,16 +469,14 @@ impl App {
 
         // Screen-specific handling
         match &self.state.current_screen {
-            Screen::Home => {
-                match key {
-                    KeyCode::Char('n') => {
-                        let new_id = uuid::Uuid::new_v4().to_string();
-                        self.state.current_screen = Screen::Session(new_id.clone());
-                        *self.session_screen.borrow_mut() = Some(SessionScreen::new(new_id));
-                    }
-                    _ => {}
+            Screen::Home => match key {
+                KeyCode::Char('n') => {
+                    let new_id = uuid::Uuid::new_v4().to_string();
+                    self.state.current_screen = Screen::Session(new_id.clone());
+                    *self.session_screen.borrow_mut() = Some(SessionScreen::new(new_id));
                 }
-            }
+                _ => {}
+            },
             Screen::Session(_) => {
                 match key {
                     KeyCode::Esc => {
@@ -308,25 +499,25 @@ impl App {
                             if !input.trim().is_empty() {
                                 // Add user message
                                 screen.add_message(format!("You: {}", input));
-                                
+
                                 // Set processing state
                                 screen.set_processing(true);
-                                
+
                                 // Process with agent
                                 let session_id = screen.session_id.clone();
                                 let input_clone = input.clone();
                                 let tx = self.response_tx.clone();
-                                
+
                                 // Spawn async task to process
-                                let rt = tokio::runtime::Handle::try_current()
-                                    .unwrap_or_else(|_| {
+                                let rt =
+                                    tokio::runtime::Handle::try_current().unwrap_or_else(|_| {
                                         tokio::runtime::Runtime::new().unwrap().handle().clone()
                                     });
-                                
+
                                 // Clone what we need for the async task
                                 let agent_name = self.agent_manager.current_name().to_string();
                                 let config = self.config.borrow().clone();
-                                
+
                                 // We need to pass sessions in a way that works across async boundaries
                                 // For now, we'll create a new session in the async function
                                 rt.spawn(async move {
@@ -336,12 +527,14 @@ impl App {
                                         &agent_name,
                                         config,
                                         tx.clone(),
-                                    ).await {
+                                    )
+                                    .await
+                                    {
                                         tracing::error!("Failed to process message: {}", e);
                                         let _ = tx.send((session_id, format!("Error: {}", e)));
                                     }
                                 });
-                                
+
                                 screen.clear_input();
                             }
                         }
@@ -350,6 +543,10 @@ impl App {
                         if let Some(screen) = self.session_screen.borrow_mut().as_mut() {
                             screen.delete_char();
                         }
+                    }
+                    KeyCode::Char('/') => {
+                        self.open_command_dialog();
+                        return Ok(());
                     }
                     KeyCode::Char(c) => {
                         if let Some(screen) = self.session_screen.borrow_mut().as_mut() {
@@ -366,27 +563,71 @@ impl App {
         Ok(())
     }
 
-    fn open_provider_dialog(&mut self) {
+    fn open_provider_dialog(&mut self, edit_id: Option<&str>) {
         let config = self.config.borrow();
-        let provider_info = config.get_default_provider();
-        let dialog = if let Some(info) = provider_info {
-            ProviderDialog::with_initial_values(
-                Some(info.provider_type),
-                info.model,
-                info.api_key,
-                info.base_url,
-            )
+        let dialog = if let Some(id) = edit_id {
+            config.get_provider_config(Some(id)).map(|info| {
+                ProviderDialog::with_initial_values_for_edit(
+                    id.to_string(),
+                    Some(info.provider_type),
+                    info.model,
+                    info.api_key,
+                    info.base_url,
+                )
+            })
         } else {
-            ProviderDialog::new()
+            None
         };
+        let dialog = dialog
+            .or_else(|| {
+                config.get_default_provider().map(|info| {
+                    ProviderDialog::with_initial_values(
+                        Some(info.provider_type),
+                        info.model,
+                        info.api_key,
+                        info.base_url,
+                    )
+                })
+            })
+            .unwrap_or_else(ProviderDialog::new);
         *self.provider_dialog.borrow_mut() = Some(dialog);
         self.state.current_screen = Screen::Dialog(Box::new(DialogState::Provider));
     }
 
+    fn open_agent_dialog(&mut self) {
+        let mut agents = self.agent_manager.list();
+        agents.sort();
+        let current = self.agent_manager.current_name().to_string();
+        *self.agent_dialog.borrow_mut() = Some(AgentDialog::new(agents, current));
+        self.state.current_screen = Screen::Dialog(Box::new(DialogState::Agent));
+    }
+
+    fn open_providers_list_dialog(&mut self) {
+        let items = self.config.borrow().list_providers();
+        *self.providers_list_dialog.borrow_mut() = Some(ProvidersListDialog::new(items));
+        self.state.current_screen = Screen::Dialog(Box::new(DialogState::ProvidersList));
+    }
+
+    fn open_help_dialog(&mut self) {
+        *self.help_dialog.borrow_mut() = Some(HelpDialog::new());
+        self.state.current_screen = Screen::Dialog(Box::new(DialogState::Help));
+    }
+
+    fn open_command_dialog(&mut self) {
+        let session_id = match &self.state.current_screen {
+            Screen::Session(id) => id.clone(),
+            _ => return,
+        };
+        tklog::info!("command_dialog opened", &session_id);
+        *self.command_dialog.borrow_mut() = Some(CommandDialog::new());
+        self.state.current_screen = Screen::Dialog(Box::new(DialogState::Command(session_id)));
+    }
+
     fn save_provider_config(&self, config: &ProviderConfig) -> Result<()> {
+        let id = config.provider_id.as_deref().unwrap_or("default");
         let mut app_config = self.config.borrow_mut();
         app_config.set_provider_config(
-            "default",
+            id,
             config.provider.clone(),
             config.api_key.clone(),
             config.base_url.clone(),
@@ -402,6 +643,7 @@ impl App {
         config: AppConfig,
         tx: mpsc::UnboundedSender<(String, String)>,
     ) -> Result<()> {
+        tracing::info!(session_id = %session_id, input_len = input.len(), "process_message_async started");
         let session_dir = config.session_dir();
         let session_file = session_dir.join(session_id).join("session.json");
         let mut session = if session_file.exists() {
@@ -415,19 +657,13 @@ impl App {
         let session_id_str = session.id.to_string();
 
         // Initialize provider and create adapter
-        #[cfg(not(feature = "langchain"))]
-        {
-            let _ = tx.send((session_id_str.clone(), "Error: langchain-rust feature not enabled. Rebuild with --features langchain".to_string()));
-            return Err(anyhow::anyhow!("langchain-rust feature not enabled"));
-        }
-        
-        #[cfg(feature = "langchain")]
         let provider_adapter = {
             let provider_info = config.get_default_provider();
             let provider_type = provider_info
                 .as_ref()
                 .map(|p| p.provider_type.clone())
                 .unwrap_or_else(|| "openai".to_string());
+            tracing::info!(provider_type = %provider_type, "provider selected");
             let base_url = provider_info.as_ref().and_then(|p| p.base_url.clone());
             let model = provider_info.as_ref().and_then(|p| p.model.clone());
 
@@ -441,13 +677,19 @@ impl App {
             let provider: Arc<dyn opencode_provider::Provider> = match provider_type.as_str() {
                 "openai" => {
                     if api_key.trim().is_empty() {
+                        tracing::error!("No API key configured for OpenAI");
                         let _ = tx.send((session_id_str.clone(), "Error: No API key configured. Press 'C' to configure provider and API key.".to_string()));
                         return Err(anyhow::anyhow!("No API key configured"));
                     }
-                    match opencode_provider::LangChainAdapter::from_openai(api_key, base_url, model) {
+                    match opencode_provider::LangChainAdapter::from_openai(api_key, base_url, model)
+                    {
                         Ok(adapter) => Arc::new(adapter),
                         Err(e) => {
-                            let _ = tx.send((session_id_str.clone(), format!("Error initializing OpenAI provider: {}", e)));
+                            tracing::error!(error = %e, "Failed to initialize OpenAI provider");
+                            let _ = tx.send((
+                                session_id_str.clone(),
+                                format!("Error initializing OpenAI provider: {}", e),
+                            ));
                             return Err(anyhow::anyhow!("Failed to initialize provider: {}", e));
                         }
                     }
@@ -456,76 +698,112 @@ impl App {
                     match opencode_provider::LangChainAdapter::from_ollama(base_url, model) {
                         Ok(adapter) => Arc::new(adapter),
                         Err(e) => {
-                            let _ = tx.send((session_id_str.clone(), format!("Error initializing Ollama provider: {}", e)));
+                            tracing::error!(error = %e, "Failed to initialize Ollama provider");
+                            let _ = tx.send((
+                                session_id_str.clone(),
+                                format!("Error initializing Ollama provider: {}", e),
+                            ));
                             return Err(anyhow::anyhow!("Failed to initialize provider: {}", e));
                         }
                     }
                 }
                 "qwen" => {
                     if api_key.trim().is_empty() {
-                        let _ = tx.send((session_id_str.clone(), "Error: No API key configured for Qwen. Press 'C' to configure.".to_string()));
+                        tracing::error!("No API key configured for Qwen");
+                        let _ = tx.send((
+                            session_id_str.clone(),
+                            "Error: No API key configured for Qwen. Press 'C' to configure."
+                                .to_string(),
+                        ));
                         return Err(anyhow::anyhow!("No API key configured"));
                     }
                     match opencode_provider::LangChainAdapter::from_qwen(api_key, base_url, model) {
                         Ok(adapter) => Arc::new(adapter),
                         Err(e) => {
-                            let _ = tx.send((session_id_str.clone(), format!("Error initializing Qwen provider: {}", e)));
+                            tracing::error!(error = %e, "Failed to initialize Qwen provider");
+                            let _ = tx.send((
+                                session_id_str.clone(),
+                                format!("Error initializing Qwen provider: {}", e),
+                            ));
                             return Err(anyhow::anyhow!("Failed to initialize provider: {}", e));
                         }
                     }
                 }
                 "anthropic" => {
                     if api_key.trim().is_empty() {
-                        let _ = tx.send((session_id_str.clone(), "Error: No API key configured. Press 'C' to configure.".to_string()));
+                        tracing::error!("No API key configured for Anthropic");
+                        let _ = tx.send((
+                            session_id_str.clone(),
+                            "Error: No API key configured. Press 'C' to configure.".to_string(),
+                        ));
                         return Err(anyhow::anyhow!("No API key configured"));
                     }
                     match opencode_provider::LangChainAdapter::from_anthropic(api_key) {
                         Ok(adapter) => Arc::new(adapter),
                         Err(e) => {
-                            let _ = tx.send((session_id_str.clone(), format!("Error initializing Anthropic provider: {}", e)));
+                            tracing::error!(error = %e, "Failed to initialize Anthropic provider");
+                            let _ = tx.send((
+                                session_id_str.clone(),
+                                format!("Error initializing Anthropic provider: {}", e),
+                            ));
                             return Err(anyhow::anyhow!("Failed to initialize provider: {}", e));
                         }
                     }
                 }
                 _ => {
-                    let _ = tx.send((session_id_str.clone(), format!("Unsupported provider type: {}", provider_type)));
-                    return Err(anyhow::anyhow!("Unsupported provider type: {}", provider_type));
+                    tracing::error!(provider_type = %provider_type, "Unsupported provider type");
+                    let _ = tx.send((
+                        session_id_str.clone(),
+                        format!("Unsupported provider type: {}", provider_type),
+                    ));
+                    return Err(anyhow::anyhow!(
+                        "Unsupported provider type: {}",
+                        provider_type
+                    ));
                 }
             };
 
             opencode_provider::ProviderAdapter::new(provider)
         };
-        
-        #[cfg(feature = "langchain")]
+
         {
             // Initialize tools
             use opencode_tools::registry::ToolRegistry;
             use opencode_tools::tools;
             let mut tool_registry = ToolRegistry::new();
             tools::register_all_tools(&mut tool_registry);
-            
+
             // Convert registry to vector of tools
-            let tools: Vec<Arc<dyn opencode_core::tool::Tool>> = tool_registry.list()
+            let tools: Vec<Arc<dyn opencode_core::tool::Tool>> = tool_registry
+                .list()
                 .iter()
                 .filter_map(|id| tool_registry.get(id))
                 .cloned()
                 .collect();
-            
+
             // Create agent manager for processing
             let mut agent_manager = AgentManager::new();
             if let Err(e) = agent_manager.switch(agent_name) {
-                let _ = tx.send((session_id_str.clone(), format!("Error switching agent: {}", e)));
+                tracing::error!(error = %e, "Failed to switch agent");
+                let _ = tx.send((
+                    session_id_str.clone(),
+                    format!("Error switching agent: {}", e),
+                ));
                 return Err(anyhow::anyhow!("Failed to switch agent: {}", e));
             }
-            
+
+            tracing::debug!("calling agent_manager.process");
             // Process with agent
             let ctx = Context {
                 session_id: session_id_str.clone(),
                 message_id: uuid::Uuid::new_v4().to_string(),
                 agent: agent_name.to_string(),
             };
-            
-            match agent_manager.process(&ctx, input, &mut session, &provider_adapter, &tools).await {
+
+            match agent_manager
+                .process(&ctx, input, &mut session, &provider_adapter, &tools)
+                .await
+            {
                 Ok(_) => {
                     let save_path = session_dir.join(&session_id_str).join("session.json");
                     if let Err(e) = session_store::save_session(&save_path, &session) {
@@ -533,11 +811,13 @@ impl App {
                     }
                     if let Some(last_msg) = session.messages.last() {
                         if matches!(last_msg.role, opencode_core::session::Role::Assistant) {
+                            tracing::info!(session_id = %session_id_str, response_len = last_msg.content.len(), "response sent to UI");
                             let _ = tx.send((session_id_str.clone(), last_msg.content.clone()));
                         }
                     }
                 }
                 Err(e) => {
+                    tracing::error!(error = %e, "Agent processing failed");
                     let _ = tx.send((session_id_str.clone(), format!("Error: {}", e)));
                     return Err(anyhow::anyhow!("Agent processing failed: {}", e));
                 }

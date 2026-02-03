@@ -36,13 +36,40 @@ impl AppConfig {
     }
 
     pub fn get_default_provider(&self) -> Option<ProviderInfo> {
-        self.get_provider_config(Some("default"))
-            .or_else(|| self.config.providers.first().map(|p| ProviderInfo {
+        self.get_provider_config(Some("default")).or_else(|| {
+            self.config.providers.first().map(|p| ProviderInfo {
                 provider_type: p.provider_type.clone(),
                 api_key: p.api_key.clone(),
                 base_url: p.base_url.clone(),
                 model: p.model.clone(),
-            }))
+            })
+        })
+    }
+
+    /// List all configured providers (id and info) for TUI display.
+    pub fn list_providers(&self) -> Vec<ProviderListItem> {
+        self.config
+            .providers
+            .iter()
+            .map(|p| ProviderListItem {
+                id: p.id.clone(),
+                provider_type: p.provider_type.clone(),
+                model: p.model.clone(),
+                base_url: p.base_url.clone(),
+            })
+            .collect()
+    }
+
+    /// Set the default provider by id (moves it to the front of the list so it is used as default).
+    pub fn set_default_provider_id(&mut self, id: &str) -> Result<()> {
+        if let Some(pos) = self.config.providers.iter().position(|p| p.id == id) {
+            if pos > 0 {
+                let item = self.config.providers.remove(pos);
+                self.config.providers.insert(0, item);
+                self.save()?;
+            }
+        }
+        Ok(())
     }
 
     pub fn set_provider_config(
@@ -61,7 +88,12 @@ impl AppConfig {
             model,
         };
 
-        if let Some(existing) = self.config.providers.iter_mut().find(|p| p.id == provider_id) {
+        if let Some(existing) = self
+            .config
+            .providers
+            .iter_mut()
+            .find(|p| p.id == provider_id)
+        {
             *existing = provider_config;
         } else {
             self.config.providers.push(provider_config);
@@ -85,6 +117,14 @@ pub struct ProviderInfo {
     pub api_key: Option<String>,
     pub base_url: Option<String>,
     pub model: Option<String>,
+}
+
+/// One row for the providers list dialog (id, type, model; no api_key).
+pub struct ProviderListItem {
+    pub id: String,
+    pub provider_type: String,
+    pub model: Option<String>,
+    pub base_url: Option<String>,
 }
 
 impl Default for AppConfig {
