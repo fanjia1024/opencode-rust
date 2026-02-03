@@ -5,6 +5,7 @@ use crate::tui::screens::home::SessionInfo;
 use crate::tui::screens::{home::HomeScreen, session::SessionScreen};
 use crate::tui::state::{AppState, DialogState, Screen};
 use crate::tui::sync::{SessionListItem, StateSync};
+use crate::tui::theme::Theme;
 use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use crossterm::execute;
@@ -133,6 +134,7 @@ impl App {
                     if let Some(screen) = self.session_screen.borrow_mut().as_mut() {
                         if screen.session_id == session_id {
                             screen.add_message(format!("Assistant: {}", response));
+                            screen.set_processing(false); // Clear processing state
                         }
                     }
                     rx = self.response_rx.borrow_mut(); // Re-borrow for next iteration
@@ -177,17 +179,19 @@ impl App {
     }
 
     fn ui(&self, f: &mut Frame) {
+        let theme = Theme::default();
+        
         match &self.state.current_screen {
             Screen::Home => {
-                self.home_screen.render(f, f.size());
+                self.home_screen.render(f, f.size(), &theme);
             }
             Screen::Session(session_id) => {
                 let mut session_screen = self.session_screen.borrow_mut();
                 if let Some(screen) = session_screen.as_mut() {
-                    screen.render(f, f.size());
+                    screen.render(f, f.size(), &theme);
                 } else {
                     let mut new_screen = SessionScreen::new(session_id.clone());
-                    new_screen.render(f, f.size());
+                    new_screen.render(f, f.size(), &theme);
                 }
             }
             Screen::Dialog(dialog_state) => {
@@ -304,6 +308,9 @@ impl App {
                             if !input.trim().is_empty() {
                                 // Add user message
                                 screen.add_message(format!("You: {}", input));
+                                
+                                // Set processing state
+                                screen.set_processing(true);
                                 
                                 // Process with agent
                                 let session_id = screen.session_id.clone();

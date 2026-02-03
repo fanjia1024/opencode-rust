@@ -1,12 +1,15 @@
 use ratatui::prelude::*;
 use ratatui::widgets::*;
-use crate::tui::components::{header, footer, message_view::MessageView, sidebar};
+use crate::tui::components::{header, message_view::MessageView, sidebar, spinner::Spinner};
+use crate::tui::theme::Theme;
 use opencode_core::session::{Role, Session};
 
 pub struct SessionScreen {
     pub session_id: String,
     pub message_view: MessageView,
     pub input: String,
+    pub is_processing: bool,
+    pub spinner: Spinner,
 }
 
 impl SessionScreen {
@@ -15,6 +18,8 @@ impl SessionScreen {
             session_id,
             message_view: MessageView::new(),
             input: String::new(),
+            is_processing: false,
+            spinner: Spinner::new(),
         }
     }
 
@@ -58,7 +63,11 @@ impl SessionScreen {
         &self.input
     }
 
-    pub fn render(&mut self, f: &mut Frame, area: Rect) {
+    pub fn set_processing(&mut self, processing: bool) {
+        self.is_processing = processing;
+    }
+
+    pub fn render(&mut self, f: &mut Frame, area: Rect, theme: &Theme) {
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(20), Constraint::Percentage(80)])
@@ -73,18 +82,37 @@ impl SessionScreen {
             ])
             .split(chunks[1]);
 
-        header::render(f, right_chunks[0], &format!("Session: {}", self.session_id));
-        self.message_view.render(f, right_chunks[1]);
+        header::render(f, right_chunks[0], &format!("Session: {}", self.session_id), theme);
+        self.message_view.render(f, right_chunks[1], theme);
         
         // Input area
+        let input_title = if self.is_processing {
+            format!("⏳ Processing... {}", self.spinner.get_frame())
+        } else {
+            "⌨️ Input (Enter to send, Esc to Home)".to_string()
+        };
+        
         let input_block = Block::default()
-            .title("Input (Enter to send, Esc to Home)")
-            .borders(Borders::TOP);
+            .title(vec![
+                Span::styled(input_title, if self.is_processing { 
+                    theme.warning_style() 
+                } else { 
+                    theme.secondary_style() 
+                }),
+            ])
+            .borders(Borders::TOP | Borders::LEFT | Borders::RIGHT)
+            .border_style(theme.border_style())
+            .style(theme.panel_style());
+        
         let input_paragraph = Paragraph::new(self.input.as_str())
             .block(input_block)
-            .style(Style::default().fg(Color::Yellow));
-        f.render_widget(input_paragraph, right_chunks[2]);
+            .style(Style::default().fg(if self.is_processing { 
+                theme.warning 
+            } else { 
+                theme.primary 
+            }));
         
-        sidebar::render(f, chunks[0]);
+        f.render_widget(input_paragraph, right_chunks[2]);
+        sidebar::render(f, chunks[0], theme);
     }
 }

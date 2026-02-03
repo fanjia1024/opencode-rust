@@ -3,8 +3,8 @@ use ratatui::widgets::*;
 use std::time::{Duration, Instant};
 
 pub struct Spinner {
-    frames: Vec<&'static str>,
-    current_frame: usize,
+    pub frames: Vec<&'static str>,
+    pub current_frame: usize,
     last_update: Instant,
     interval: Duration,
 }
@@ -28,6 +28,10 @@ impl Spinner {
         } else {
             false
         }
+    }
+
+    pub fn get_frame(&self) -> &'static str {
+        self.frames[self.current_frame]
     }
 
     pub fn render(&self, f: &mut Frame, area: Rect) {

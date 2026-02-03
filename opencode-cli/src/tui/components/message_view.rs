@@ -1,6 +1,7 @@
 use ratatui::prelude::*;
 use ratatui::widgets::*;
 use crate::tui::components::{syntax_highlighter::SyntaxHighlighter, virtual_scroll::VirtualScroll};
+use crate::tui::theme::Theme;
 
 pub struct MessageView {
     messages: Vec<String>,
@@ -31,10 +32,12 @@ impl MessageView {
         self.virtual_scroll.scroll_down(1);
     }
 
-    pub fn render(&mut self, f: &mut Frame, area: Rect) {
+    pub fn render(&mut self, f: &mut Frame, area: Rect, theme: &Theme) {
         let block = Block::default()
-            .title("Messages")
-            .borders(Borders::ALL);
+            .title(vec![Span::styled("💬", Style::default().fg(theme.accent)), Span::raw(" Messages")])
+            .borders(Borders::ALL)
+            .border_style(theme.border_style())
+            .style(theme.panel_style());
         
         let inner = block.inner(area);
         self.virtual_scroll.viewport_height = inner.height as usize;
@@ -72,16 +75,47 @@ impl MessageView {
                     }
                     result
                 } else {
-                    msg.lines()
-                        .map(|line| Line::from(line.to_string()))
-                        .collect()
+                    // Format message with role prefixes
+                    let formatted_lines = if msg.starts_with("You: ") {
+                        vec![Line::from(vec![
+                            Span::styled("👤 You: ", Style::default().fg(theme.primary).add_modifier(Modifier::BOLD)),
+                            Span::raw(&msg[5..]) // Skip "You: " prefix
+                        ])]
+                    } else if msg.starts_with("Assistant: ") {
+                        vec![Line::from(vec![
+                            Span::styled("🤖 Assistant: ", Style::default().fg(theme.secondary).add_modifier(Modifier::BOLD)),
+                            Span::raw(&msg[12..]) // Skip "Assistant: " prefix
+                        ])]
+                    } else if msg.starts_with("System: ") {
+                        vec![Line::from(vec![
+                            Span::styled("⚙️ System: ", Style::default().fg(theme.warning).add_modifier(Modifier::BOLD)),
+                            Span::raw(&msg[8..]) // Skip "System: " prefix
+                        ])]
+                    } else if msg.starts_with("Tool: ") {
+                        vec![Line::from(vec![
+                            Span::styled("🛠️ Tool: ", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+                            Span::raw(&msg[6..]) // Skip "Tool: " prefix
+                        ])]
+                    } else {
+                        vec![Line::from(msg.as_str())]
+                    };
+                    
+                    formatted_lines
                 };
-                ListItem::new(lines)
+                
+                ListItem::new(lines).style(Style::default().bg(if msg.starts_with("You: ") { 
+                    Color::Rgb(30, 30, 45) 
+                } else if msg.starts_with("Assistant: ") { 
+                    Color::Rgb(25, 35, 45) 
+                } else { 
+                    theme.panel_bg 
+                }))
             })
             .collect();
 
         let list = List::new(items)
-            .block(block);
+            .block(block)
+            .highlight_style(theme.highlight_style());
         
         f.render_widget(list, area);
         self.virtual_scroll.render_scrollbar(f, area);
