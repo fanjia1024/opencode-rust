@@ -1,132 +1,37 @@
-<
-
-# AGENTS.md
+# OpenCode Rust - Developer Guide
 
 ## Project Overview
 
-OpenCode Rust is a local AI coding assistant built as a terminal-first application. It provides both an interactive TUI for ongoing conversations and a scriptable CLI for one-off queries. The application is designed around human-in-the-loop principles—you drive the conversation while the agent assists, without autonomous workflow execution.
+OpenCode Rust is a lightweight, local-first terminal client for chatting with an AI coding assistant. The project is built as a Rust workspace consisting of four main crates that work together to provide a complete CLI and TUI experience without requiring any server infrastructure.
 
-The project consists of four main crates within a Rust workspace:
+The architecture follows a clear separation of concerns across the workspace. `opencode-core` contains the fundamental domain logic including the agent system, session state management, caching, configuration, and permission handling. `opencode-provider` implements the interface layers for connecting to various LLM providers like Anthropic, with adapters for different protocols including LangChain integration. `opencode-tools` provides a registry system for exposing functionality to agents, while `opencode-cli` delivers the user-facing terminal interface with both interactive TUI and scriptable CLI modes.
 
-- **opencode-core**: The central library containing agent management, session state, caching, configuration, permission handling, and tool registration.
-- **opencode-provider**: Adapters for various AI providers (Anthropic, LangChain, custom implementations), message handling, and provider abstraction.
-- **opencode-tools**: A registry of built-in tools that agents can invoke during conversations.
-- **opencode-cli**: The command-line interface and terminal user interface implementation.
+This project deliberately avoids agent frameworks, SDKs, and workflow engines. Instead, it provides a human-in-the-loop experience where the user drives the conversation and the agent assists without autonomous operation. Sessions are stored locally in `.opencode/sessions` within the user's project, and configuration follows platform-specific conventions in standard config directories.
 
 ## Directory Structure
 
-```
-opencode-core/src/        # Core library: agent, session, cache, config, tools
-opencode-provider/src/    # Provider adapters and AI service integrations
-opencode-tools/src/       # Built-in tool definitions and registry
-opencode-cli/src/         # CLI entry point and TUI implementation
-tests/integration/        # Integration tests for core functionality
-scripts/                  # Build and release automation scripts
-Cargo.toml                # Workspace manifest
-```
+The workspace root contains several metadata and documentation files alongside the core project directories. The `opencode-core/` crate houses the primary application logic with modules for agent management (`agent.rs`, `agent_manager.rs`), system infrastructure (`cache.rs`, `config.rs`, `session_state.rs`), and core abstractions (`tool.rs`, `ids.rs`, `permission.rs`). The `opencode/` subdirectory within core contains session-related implementations.
+
+The `opencode-cli/` crate provides the entry point through `main.rs` and organizes functionality into the TUI layer (`tui/`), session persistence (`session_store.rs`), and CLI commands. Provider implementations live in `opencode-provider/` with adapters for different LLM services (`anthropic.rs`, `langchain_adapter.rs`, `provider_adapter.rs`) and the trait definitions that enable provider flexibility.
+
+Supporting crates include `opencode-tools/` for the tool registry and `tests/` for integration testing. Build and automation scripts reside in `scripts/`, while documentation files in the root provide historical context about implementation decisions, scope, and roadmap.
 
 ## Build
 
-Build the entire workspace from the root directory:
+The project uses standard Cargo commands for building. Execute `cargo build` from the workspace root to compile all crates in debug mode. For release builds optimized for distribution, run `cargo build --release` which places binaries in the `target/release/` directory. The provided `scripts/build.sh` and `scripts/build-release.sh` scripts offer convenience wrappers for common build operations.
 
-```bash
-cargo build
-```
-
-For release builds with optimizations:
-
-```bash
-cargo build --release
-```
-
-Or use the provided build scripts:
-
-```bash
-./scripts/build.sh        # Development build
-./scripts/build-release.sh # Optimized release build
-```
-
-Individual crates can also be built separately:
-
-```bash
-cargo build -p opencode-core
-cargo build -p opencode-cli
-```
+All crates are part of the same workspace, so Cargo automatically resolves dependencies across `opencode-core`, `opencode-cli`, `opencode-provider`, and `opencode-tools` without requiring separate compilation steps. Dependencies are managed through the root `Cargo.toml` workspace manifest and individual crate manifests.
 
 ## Test
 
-Run the full test suite from the workspace root:
+The project maintains both unit tests within crate source files and integration tests in the dedicated `tests/` directory. Run the full test suite with `cargo test` from the workspace root. This executes tests across all workspace members including the core library, CLI application, provider implementations, and integration scenarios.
 
-```bash
-cargo test
-```
-
-Run tests for a specific crate:
-
-```bash
-cargo test -p opencode-core
-cargo test -p opencode-provider
-```
-
-Run integration tests specifically:
-
-```bash
-cargo test --test integration
-```
-
-Check code coverage and linting:
-
-```bash
-cargo clippy
-cargo fmt --check
-```
+Integration tests are organized by functionality with files like `agent_test.rs`, `cache_test.rs`, `tool_test.rs`, and `basic_test.rs` covering major system components. New features should include corresponding integration tests that verify behavior across crate boundaries.
 
 ## Conventions
 
-### Code Organization
+Code organization follows Rust best practices with clear module boundaries. The project uses `thiserror` for error definitions and `anyhow` for ergonomic error handling. Configuration management relies on platform-appropriate config directories, falling back to platform-specific defaults (AppData on Windows, Application Support on macOS, XDG config on Linux).
 
-- Each crate maintains its own `src/lib.rs` as the public API entry point
-- Internal modules are organized by functionality (e.g., `agent.rs`, `session_state.rs`, `cache.rs`)
-- Public APIs are clearly marked in `lib.rs` exports
-- Tests reside alongside implementation files (`tests.rs`) or in dedicated integration test directories
+The agent system emphasizes explicit permission handling rather than autonomous action. Agents must request operations and receive user approval before executing tools or making provider calls. This design philosophy should guide any additions to the codebase—always prefer human-in-the-loop patterns over background automation.
 
-### Error Handling
-
-- Use the `error.rs` module for domain-specific error types
-- Errors should be descriptive and include context for debugging
-- Propagate errors using the `?` operator where appropriate
-- Consider using `thiserror` for deriving error types
-
-### Configuration
-
-- Configuration follows platform-specific standards (`.config/opencode/` on Linux/macOS, AppData on Windows)
-- Session data stored in `.opencode/sessions/` within each project
-- Use the `config.rs` module for loading and managing settings
-
-### Tool Development
-
-- Tools are registered through `opencode-tools/src/tools/registry.rs`
-- Implement the `Tool` trait from the core library
-- Tools should have clear input/output contracts
-- Permissions are managed through the permission system in `opencode-core/src/permission.rs`
-
-### Provider Integration
-
-- New providers should implement the provider trait in `opencode-provider/src/trait_.rs`
-- Use the adapter pattern for provider-specific implementations
-- Message formats follow the structure defined in `opencode-provider/src/message.rs`
-- Caching is handled through `CachedProvider` for performance
-
-### Session Management
-
-- Sessions are stateful and persisted to disk
-- Use `session_state.rs` for tracking conversation context
-- Session storage uses the standard session store pattern in `opencode-cli/src/session_store.rs`
-
-### Contributing
-
-- Follow Rust idioms and the project's existing patterns
-- Run `cargo fmt` before committing
-- Add tests for new functionality
-- Update documentation as needed
-- See `CONTRIBUTING.md` for detailed guidelines
+Commits should follow conventional commit format for automated changelog generation. Code review should verify that new functionality respects the local-first, terminal-only principles and does not introduce unnecessary dependencies or framework abstractions. When adding provider support, implement the established trait patterns in `opencode-provider/` rather than introducing provider-specific logic elsewhere in the codebase.
