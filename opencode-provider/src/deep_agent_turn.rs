@@ -111,6 +111,8 @@ pub struct DeepAgentTurnConfig {
     pub max_history_messages: Option<usize>,
     /// If set, truncate each message content to this many characters (UTF-8 safe), appending " ... (truncated)".
     pub max_message_content_len: Option<usize>,
+    /// If set, cap agent steps per turn (langchain default is 10). Set in config as max_agent_iterations.
+    pub max_iterations: Option<i32>,
 }
 
 impl Default for DeepAgentTurnConfig {
@@ -122,6 +124,7 @@ impl Default for DeepAgentTurnConfig {
             on_tool_call: None,
             max_history_messages: None,
             max_message_content_len: None,
+            max_iterations: None,
         }
     }
 }
@@ -228,13 +231,17 @@ pub async fn run_deep_agent_turn(
         config.read_only,
     );
 
-    let agent = create_deep_agent_from_llm(
+    let mut agent = create_deep_agent_from_llm(
         LlmArcWrapper(llm.clone()),
         &langchain_tools,
         Some(&system_prompt),
         agent_config,
     )
     .map_err(|e| Error::Provider(format!("DeepAgent create failed: {}", e)))?;
+
+    if let Some(n) = config.max_iterations {
+        agent = agent.with_max_iterations(n);
+    }
 
     let compressed = compress_session_messages(
         session_messages,
@@ -249,5 +256,9 @@ pub async fn run_deep_agent_turn(
         .await
         .map_err(|e| Error::Provider(format!("DeepAgent invoke failed: {}", e)))?;
 
-    Ok(reply)
+    // Strip <think> / think> blocks so the UI shows only the visible reply. If the model
+    // returns non-JSON (e.g. <think> first), the output parser may not recognize tool
+    // calls and will return text only; stripping still ensures a clean reply.
+    let cleaned = crate::langchain_adapter::strip_thinking_blocks(&reply);
+    Ok(cleaned)
 }

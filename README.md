@@ -1,20 +1,20 @@
 # OpenCode Rust
 
 **A local AI coding assistant in your terminal.**
-CLI + TUI only — **no server, no SDK, no agent framework**.
+CLI + desktop app — **no server, no SDK, no agent framework**.
 
-OpenCode Rust is a lightweight, local-first terminal client for chatting with an AI agent while you design, review, and iterate on code.
+OpenCode Rust is a lightweight, local-first client for chatting with an AI agent while you design, review, and iterate on code. Use the **desktop app** (Tauri) for interactive sessions or the **CLI** for one-off questions and scripting.
 
 ---
 
 ## What this project is
 
-- **A terminal-first product**
-  - Interactive **TUI** for ongoing conversations
+- **Terminal + desktop**
+  - **Desktop app** (Tauri + Vue 3) for interactive conversations
   - Scriptable **CLI** for one-off questions
 - **Local-first**
-  - Sessions live in your project under `.opencode/sessions`
-  - Config stored in standard config dir (e.g. `~/.config/opencode/` or `~/Library/Application Support/opencode/`)
+  - **Desktop app**：配置与会话均保存在当前工作区目录下 `.opencode/`（`config.json`、`sessions/`），不依赖启动参数
+  - **CLI**：使用全局配置目录（如 `~/.config/opencode/`）
   - No background services, no daemon
 - **Human-in-the-loop**
   - You drive the conversation
@@ -86,8 +86,9 @@ cd opencode-rust
 # 全工作区构建（默认启用 langchain）
 cargo build --workspace
 
-# 运行 TUI
-cargo run --bin opencode -- tui
+# 运行桌面应用
+opencode app
+# 或先构建 opencode-app 后：cargo run -p opencode-app（开发模式需在 opencode-app 目录执行 npm install && npm run dev + cargo tauri dev）
 ```
 
 **不启用 AI Provider 的构建**（仅核心 + CLI，无网络调用）：
@@ -99,39 +100,28 @@ cargo build --workspace --no-default-features
 ### Quick start
 
 1. **设置 API Key**  
-   `export OPENAI_API_KEY="your-key"` 或 `OPENCODE_OPENAI_API_KEY`；也可在 TUI 中按 `C` 打开配置对话框设置 Provider 与 API Key。
-2. **启动 TUI**  
-   `cargo run --bin opencode -- tui`，或安装后执行 `opencode tui`。
+   `export OPENAI_API_KEY="your-key"` 或 `OPENCODE_OPENAI_API_KEY`。
+2. **启动桌面应用**  
+   `opencode app`（需先 `cargo build -p opencode-app`；或进入 `opencode-app` 目录执行 `npm install` 后 `cargo tauri dev` 开发运行）。
 3. **基本流程**  
-   Home 页按 `n` 创建会话；进入会话后输入内容按 Enter 发送。详见 [USAGE.md](USAGE.md)。
+   在应用中新建会话、输入消息发送；或使用 CLI：`opencode run "your question"`。详见 [USAGE.md](USAGE.md)。
 
 ---
 
 ## 使用说明
 
-### 1. TUI（主要使用方式）
+### 1. 桌面应用（主要使用方式）
 
 ```bash
-opencode tui
+opencode app
 ```
 
-- **Home**：会话列表 / 创建新会话
-- **Chat**：对话 + 输入框
-- **配置**：按 `C` 打开 Provider 与 API Key 配置
+需先构建桌面应用：`cargo build -p opencode-app`。开发时可在 `opencode-app` 目录执行 `npm install` 后运行 `cargo tauri dev`。
 
-**快捷键：**
-
-| 按键      | 说明                                       |
-| --------- | ------------------------------------------ |
-| `q`       | 退出应用                                   |
-| `n`       | 新建会话（在 Home 页）                     |
-| `C`       | 打开 Provider / API Key 配置（全局）       |
-| `Esc`     | 返回上一级 / 关闭对话框；在会话内返回 Home |
-| `Tab`     | 在配置对话框内切换输入项                   |
-| `Enter`   | 确认 / 提交；在会话内发送消息              |
-| `↑` / `↓` | 在列表中导航；在会话内滚动消息             |
-
-**配置对话框**（按 `C` 后）：选择 Provider（OpenAI / Anthropic）、输入 API Key、可选 Base URL，按 Enter 保存，Esc 取消。配置写入本地 config，无需重启即生效。
+- **Home**：会话列表，新建会话
+- **Session**：对话 + 输入框 + Agent 日志
+- **Settings**：查看 Provider、切换 Agent（build / plan / general）
+- **Help**：简要说明
 
 ### 2. 一次性 CLI 问答
 
@@ -156,6 +146,21 @@ opencode config show   # 显示当前配置
 opencode config reset  # 恢复默认配置
 ```
 
+### 5. 桌面应用测试方案
+
+本地开发或排查问题时，可按以下流程验证桌面应用与 Agent：
+
+| 步骤 | 操作 | 说明 |
+|------|------|------|
+| 1. 构建 | `cargo build -p opencode-cli` 与 `cargo build -p opencode-app` | Debug 构建便于看日志与 panic |
+| 2. 日志级别 | `export RUST_LOG=debug` | 可选：`opencode_provider=debug,opencode_cli=debug` 只看部分模块 |
+| 3. 启动方式 A | `RUST_LOG=debug opencode app` | 使用已构建的二进制，日志写入 `logs/opencode.log`，debug 时同时输出到终端 |
+| 3. 启动方式 B | `cd opencode-app && npm install && RUST_LOG=debug cargo tauri dev` | Tauri 开发模式：前端热更 + 终端直接看后端/Agent 日志 |
+| 4. 看日志 | 项目根目录 `logs/opencode.log` | 含 list_sessions、send_message、provider 调用、deep_agent 等 |
+| 5. 单独测 Provider | `RUST_LOG=debug opencode run "Hello"` | 不经过 App UI，验证 API key 与简单生成；带工具的 Agent 需在 App 内发消息并配合日志验证 |
+
+桌面应用配置与会话保存在**当前工作区**的 `.opencode/` 下；未指定工作区时使用启动时当前目录。完整调试步骤与常见异常对照见 [USAGE.md 中的「本地调试 App 与 Agent」](USAGE.md#本地调试-app-与-agent)。
+
 ---
 
 ## 编译脚本说明
@@ -171,9 +176,9 @@ opencode config reset  # 恢复默认配置
 
 ## Core design principles
 
-### CLI + TUI only
+### CLI + desktop app
 
-OpenCode Rust is a **terminal application**, not a service. There is no stable HTTP API.
+OpenCode Rust is a **local client** (desktop app + CLI), not a service. There is no stable HTTP API.
 
 > The `serve` subcommand is experimental and planned for removal.
 
@@ -199,7 +204,8 @@ opencode-rust/
 ├── opencode-core/      # Core data models and abstractions
 ├── opencode-provider/  # AI provider integrations
 ├── opencode-tools/     # Built-in tool set (internal)
-├── opencode-cli/       # CLI and TUI (the product)
+├── opencode-cli/       # CLI (opencode run/sessions/config/init/app)
+├── opencode-app/       # Desktop app (Tauri + Vue 3); run via opencode app
 ├── scripts/            # Build scripts
 └── tests/              # Integration tests
 ```
@@ -208,11 +214,11 @@ opencode-rust/
 
 ## Troubleshooting
 
-- **No API key** — 设置 `OPENAI_API_KEY` 或 `OPENCODE_OPENAI_API_KEY`，或在 TUI 中按 `C` 配置。
+- **No API key** — 设置 `OPENAI_API_KEY` 或 `OPENCODE_OPENAI_API_KEY`。
 - **Feature / langchain not enabled** — 若曾使用 `--no-default-features` 构建，请用 `cargo build --workspace` 或 `cargo build --workspace --features langchain`。
 - **Error initializing provider** — 检查 API key 与网络是否可达。
-- **聊天无响应 / Processing 一直转** — 可设置 `RUST_LOG=debug` 或 `RUST_LOG=opencode_cli=debug,opencode_provider=debug` 后重新运行 `cargo run --bin opencode -- tui`，根据日志查看是 provider 初始化失败、网络超时还是响应未回写到 UI。
-- **API 调用不应走代理** — 若系统设置了 `HTTP_PROXY`/`HTTPS_PROXY`，请求会经代理发出。若希望直连你配置的 API 地址（如 `api.openai.com` 或自定义 base URL 如 `mgallery.haier.net`），可在运行前设置 `NO_PROXY` 包含该主机，例如：`NO_PROXY=mgallery.haier.net cargo run --bin opencode -- tui` 或 `NO_PROXY=api.openai.com cargo run --bin opencode -- tui`。
+- **聊天无响应 / Processing 一直转** — 可设置 `RUST_LOG=debug` 后重新运行应用，根据终端或 `logs/opencode.log` 查看是 provider 初始化失败、网络超时还是响应未回写。
+- **API 调用不应走代理** — 若系统设置了 `HTTP_PROXY`/`HTTPS_PROXY`，可在运行前设置 `NO_PROXY=api.openai.com`（或你的 API 主机）再启动应用。
 - **下载超时 / 镜像慢** — 若全局 `~/.cargo/config.toml` 里配置了 crates 镜像（如 rsproxy），直接运行 `cargo build` / `cargo run` 会使用该镜像，可能超时。任选其一：**临时不用镜像** — 编辑 `~/.cargo/config.toml`，注释或删除 `[source.crates-io]` 下的 `replace-with = "rsproxy-sparse"` 以及对应的 `[source.rsproxy-sparse]` 整块，保存后再执行 cargo；**使用代理** — 配置 `HTTP_PROXY` / `HTTPS_PROXY` 后再执行 cargo。
 
 详见 [USAGE.md](USAGE.md)（含 API Key 配置与故障排除）。
@@ -244,4 +250,4 @@ MIT License. See [LICENSE](LICENSE) in this repository.
 
 ---
 
-If you are interested in contributing, please read **[PROJECT_SCOPE.md](PROJECT_SCOPE.md)** first. PRs that expand scope beyond CLI/TUI will likely be declined.
+If you are interested in contributing, please read **[PROJECT_SCOPE.md](PROJECT_SCOPE.md)** first. PRs that expand scope beyond CLI and the desktop app will likely be declined.

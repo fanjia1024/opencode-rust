@@ -1,0 +1,192 @@
+---
+description: Design system and Figma integration rules for opencode-app (Vue 3 + Tauri). Use when implementing or aligning UI with Figma designs.
+globs: opencode-app/**/*.vue, opencode-app/**/*.css, opencode-app/**/*.js
+---
+
+# Design System & Figma Integration Rules
+
+Reference Figma (latest): [桌面编码智能体交互应用](https://www.figma.com/make/SYEYIEMUsjzHGODCN13IRM/%E6%A1%8C%E9%9D%A2%E7%BC%96%E7%A0%81%E6%99%BA%E8%83%BD%E4%BD%93%E4%BA%A4%E4%BA%92%E5%BA%94%E7%94%A8?fullscreen=1&t=JAoIkakFNPpQmGO9-1)
+
+---
+
+## 1. Design Token Definitions
+
+**Current state:** Central tokens in **`opencode-app/src/styles/tokens.css`** (CSS custom properties). Components use `var(--color-primary)`, `var(--space-4)`, etc. Import in `main.js`: `import './styles/tokens.css'`.
+
+**When updating from Figma:** Change values in `tokens.css` only; components already reference the variables.
+
+**Reference values (defined in tokens.css):**
+
+| Purpose | Value | Used in |
+|--------|--------|--------|
+| Sidebar background | `#252526` | AppSidebar |
+| Sidebar text | `#e0e0e0` | AppSidebar |
+| Sidebar hover / border | `#2d2d30`, `#3c3c3c` | AppSidebar |
+| Primary (buttons, accent) | `#0078d4` | AppSidebar, Session, Empty |
+| Primary hover | `#106ebe` | AppSidebar, Session, Empty |
+| Logo accent | `#4fc3f7` | AppSidebar |
+| Main background | `#fafafa` | App.vue, Session, Empty |
+| Surface / cards | `#fff` | Session header, input area |
+| Border light | `#e5e5e5`, `#ddd`, `#e0e0e0` | Session, Settings |
+| Text primary | `#333` | Session, Settings |
+| Text secondary | `#666`, `#888` | Session, Settings, Empty |
+| Code / hint bg | `#eee`, `#f5f5f5`, `#f0f0f0` | Settings, Session |
+| Error | `#c00` | Session log |
+| Badge (default) | `#e0e7ff`, `#3730a3` | Settings |
+
+**Recommendation for Figma integration:**
+
+- Add a single source of truth: e.g. `opencode-app/src/styles/tokens.css` (or `tokens.js` exported to Vue) defining CSS custom properties.
+- Map Figma variables (colors, spacing, typography) to those tokens.
+- Use `var(--color-primary)` etc. in components instead of hex in scoped styles.
+
+**No token transformation system** is in place (no build-step token pipeline).
+
+---
+
+## 2. Component Library
+
+**Location:** `opencode-app/src/components/` (shared) and `opencode-app/src/views/` (page-level).
+
+**Current components:**
+
+- **AppSidebar.vue** – Layout: logo, “新建对话” button, session list, “设置”. Reused in App.vue.
+- **Views (route-level):** Empty.vue, Session.vue, Settings.vue, Help.vue, Home.vue (legacy). No shared Button, Input, Card, etc.
+
+**Architecture:** Vue 3 Composition API (`<script setup>`), single-file components (.vue). No base class or mixin system for shared UI.
+
+**Documentation:** No Storybook or component docs. Figma should be the visual reference; this file is the implementation reference.
+
+**When implementing from Figma:**
+
+- Prefer one Vue component per major Figma component or section (e.g. sidebar, chat header, message row, input bar).
+- Reuse `AppSidebar` for the left rail; match new designs by updating its scoped styles and structure.
+- Add reusable primitives (e.g. `BaseButton`, `BaseInput`) in `src/components/` when the same pattern repeats across views.
+
+---
+
+## 3. Frameworks & Libraries
+
+| Layer | Technology |
+|-------|------------|
+| UI framework | **Vue 3** (Composition API, `<script setup>`) |
+| Router | **Vue Router 4** (`createWebHistory`) |
+| Backend bridge | **@tauri-apps/api** (v2) – `invoke`, `listen` |
+| Build | **Vite 5** |
+| Bundler | Vite (Rollup in production) |
+| Styling | Plain CSS in `<style scoped>`; no Tailwind, no CSS-in-JS |
+
+**Relevant config:** `opencode-app/vite.config.js` – Vue plugin, port 1420, alias `@` → `src`.
+
+```js
+// vite.config.js
+resolve: {
+  alias: { '@': path.resolve(__dirname, 'src') },
+}
+```
+
+Use `@/components/...` or `@/views/...` for imports when adding new modules.
+
+---
+
+## 4. Asset Management
+
+**Storage:**
+
+- **Web root:** `opencode-app/` – entry `index.html` at repo root of app, script `src/main.js`.
+- **Static assets:** No dedicated `public/` or `src/assets/` folder in use; no image imports in Vue files.
+- **Tauri app icons:** `opencode-app/src-tauri/icons/` – `icon.png`, `32x32.png` (used by Tauri, not by the web UI).
+
+**Referencing:** No CDN. If adding images, place under `opencode-app/public/` for root URLs or `opencode-app/src/assets/` and import in components for hashed build output.
+
+**Optimization:** None (no image pipeline or lazy-load config). Add as needed when introducing images from Figma.
+
+---
+
+## 5. Icon System
+
+**Current approach:** Inline **Unicode/emoji** and **text** in templates (e.g. `💬`, `⚙`, `👤`, `🖥`, `✈`, `</>`). No SVG sprite or icon component.
+
+**Example (AppSidebar.vue):**
+
+```vue
+<span class="session-icon">💬</span>
+<span class="icon">⚙</span>
+<span class="logo-icon">&lt;/&gt;</span>
+```
+
+**Naming:** No formal convention. When adding icons from Figma:
+
+- Prefer a single folder, e.g. `opencode-app/src/assets/icons/`, with descriptive names (`icon-settings.svg`, `icon-send.svg`).
+- Use a small wrapper component (e.g. `Icon.vue` with `name` prop) or inline `<img>`/SVG to keep usage consistent.
+
+---
+
+## 6. Styling Approach
+
+**Methodology:** Scoped CSS in each `.vue` file. Global styles only in `App.vue`:
+
+```css
+/* App.vue */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+```
+
+**Patterns:**
+
+- One `<style scoped>` per component; class names are BEM-like or flat (e.g. `.sidebar`, `.btn-new`, `.session-item.active`).
+- Units: mix of `rem` and `px` (e.g. `1rem`, `14px`, `0.875rem`). Font sizes often in `rem` or `px`; spacing in `rem` or `px`.
+- No CSS Modules, no preprocessor (no Sass/Less).
+- No responsive breakpoints defined; layout is desktop-first (sidebar 260px, main flex).
+
+**Figma alignment:**
+
+- When matching Figma, use the same values for padding, gap, font-size, border-radius, and colors in the component’s scoped block.
+- Prefer introducing tokens (see §1) and using them in new or updated components so future Figma changes touch one place.
+
+---
+
+## 7. Project Structure
+
+```
+opencode-app/
+├── index.html              # Entry HTML
+├── package.json
+├── vite.config.js
+├── src/
+│   ├── main.js             # Vue app + router mount
+│   ├── App.vue             # Root layout (sidebar + main)
+│   ├── components/         # Shared UI (e.g. AppSidebar.vue)
+│   ├── views/              # Route-level pages
+│   │   ├── Empty.vue       # /  empty state
+│   │   ├── Session.vue     # /session/:id  chat
+│   │   ├── Settings.vue    # /settings
+│   │   ├── Help.vue        # /help
+│   │   └── Home.vue        # (legacy, unused in router)
+│   └── router/
+│       └── index.js        # Routes: /, /session/:id, /settings, /help
+└── src-tauri/              # Tauri (Rust) backend + icons
+```
+
+**Conventions:**
+
+- **Views** = one per route; they own page layout and call Tauri via `invoke`/`listen`.
+- **Components** = reusable layout or UI used by App or views.
+- **Router** = flat route list; no nested layouts beyond App.vue.
+- **Tauri commands** = camelCase in frontend (`sessionId`, `providerId`, `apiKey`, etc.).
+
+---
+
+## 8. Figma → Code Mapping (Quick Reference)
+
+| Figma area | Code location |
+|------------|----------------|
+| Left sidebar (dark) | `AppSidebar.vue` |
+| Main content (light) | `router-view` in `App.vue` → Empty / Session / Settings / Help |
+| Chat header (title + count) | `Session.vue` – `.chat-header`, `.chat-title`, `.chat-meta` |
+| Message rows (avatar + content) | `Session.vue` – `.msg-row`, `.avatar`, `.msg-body` |
+| Quick actions + input + send | `Session.vue` – `.quick-actions`, `.input-row`, `.btn-send` |
+| Settings form (provider/agent) | `Settings.vue` – `.provider-form`, `.section` |
+| Empty state | `Empty.vue` |
+
+When updating from Figma, change the corresponding component’s template and scoped styles; if a value is repeated, consider adding it to a shared tokens file and using CSS variables.

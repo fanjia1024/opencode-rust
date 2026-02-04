@@ -1,6 +1,7 @@
 pub mod agent;
 pub mod agent_manager;
 pub mod cache;
+pub mod command;
 pub mod config;
 pub mod error;
 pub mod ids;
@@ -22,3 +23,4 @@ pub use cache::{Cache, ConcurrentCache};
 pub use ids::SessionId;
 pub use session::{Message, MessageMeta, Role, Session};
 pub use session_state::{SessionState, SessionStateMachine};
+pub use command::{CommandDef, format_input_for_command, list_commands};

@@ -6,6 +6,21 @@ use std::sync::Arc;
 
 use crate::deep_agent_turn::{OnToolCall, ToolCallEvent};
 
+/// Strips a leading "path:" or "path :" (case-insensitive, optional space) from a string
+/// so that LLM output like "path: /foo/bar" is normalized to "/foo/bar".
+fn strip_path_prefix(s: &str) -> String {
+    let s = s.trim();
+    let lower = s.to_lowercase();
+    let rest = if lower.starts_with("path:") {
+        s.get(5..).unwrap_or(s).trim()
+    } else if lower.starts_with("path :") {
+        s.get(6..).unwrap_or(s).trim()
+    } else {
+        s
+    };
+    rest.to_string()
+}
+
 /// Coerces tool input from formats the LLM/framework may send (e.g. plain string)
 /// into the object shape our tools expect (e.g. {"path": s} or {"command": s}).
 fn normalize_tool_input(
@@ -16,10 +31,18 @@ fn normalize_tool_input(
     match input {
         Value::String(s) if !s.is_empty() => match tool_id {
             "bash" => serde_json::json!({ "command": s }),
-            "read" | "ls" | "list_files" => serde_json::json!({ "path": s }),
+            "read" | "ls" | "list_files" => {
+                serde_json::json!({ "path": strip_path_prefix(&s) })
+            }
             _ => Value::String(s),
         },
         Value::Object(mut map) if ["read", "ls", "list_files"].contains(&tool_id) => {
+            if let Some(Value::String(p)) = map.get("path") {
+                let normalized = strip_path_prefix(p);
+                if !normalized.is_empty() {
+                    map.insert("path".to_string(), Value::String(normalized));
+                }
+            }
             let path_empty = map
                 .get("path")
                 .and_then(|v| v.as_str())

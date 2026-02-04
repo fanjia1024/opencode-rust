@@ -4,6 +4,7 @@ members = [
     "opencode-provider",
     "opencode-tools",
     "opencode-cli",
+    "opencode-app/src-tauri",
 ]
 resolver = "2"
 

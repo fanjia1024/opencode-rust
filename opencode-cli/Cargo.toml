@@ -6,6 +6,10 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[lib]
+name = "opencode_cli"
+path = "src/lib.rs"
+
 [[bin]]
 name = "opencode"
 path = "src/main.rs"
@@ -21,13 +25,9 @@ serde_json = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
-ratatui = { workspace = true }
-crossterm = { workspace = true }
 tracing-subscriber = { workspace = true }
 tracing-appender = "0.2"
 tklog = "0.2"
 uuid = { workspace = true }
-syntect = { workspace = true }
-unicode-width = "0.1"
 chrono = { workspace = true }
 walkdir = { workspace = true }

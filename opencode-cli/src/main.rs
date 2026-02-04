@@ -1,9 +1,5 @@
-mod commands;
-mod config;
-mod session_store;
-mod tui;
-
 use anyhow::Result;
+use opencode_cli::commands;
 use clap::{Parser, Subcommand};
 use tracing_subscriber::{
     fmt,
@@ -22,8 +18,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Start the TUI interface
-    Tui,
+    /// Start the desktop app (Tauri)
+    App,
     /// Create or refresh AGENTS.md in the current directory
     Init {
         /// Overwrite existing AGENTS.md with newly generated content
@@ -35,7 +31,7 @@ enum Commands {
         /// The command to run
         command: String,
     },
-    /// (Deprecated) HTTP server – planned removal; use TUI or run for CLI
+    /// (Deprecated) HTTP server – planned removal; use app or run for CLI
     #[clap(hide = true)]
     Serve {
         /// Port to listen on
@@ -91,23 +87,9 @@ async fn main() -> Result<()> {
 
     let cli = Cli::parse();
 
-    // Tracing: for Tui, file-only so stdout is not mixed with the TUI; for other commands, stdout + file
     let filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("info"));
-    let _guard = match &cli.command {
-        Commands::Tui => {
-            let file = std::fs::OpenOptions::new()
-                .create(true)
-                .append(true)
-                .open("logs/opencode.log")?;
-            let (file_writer, guard) = tracing_appender::non_blocking(file);
-            tracing_subscriber::registry()
-                .with(filter)
-                .with(fmt::Layer::new().with_writer(file_writer))
-                .init();
-            guard
-        }
-        _ => {
+    let _guard = {
             let file = std::fs::OpenOptions::new()
                 .create(true)
                 .append(true)
@@ -118,23 +100,18 @@ async fn main() -> Result<()> {
                 .with(fmt::Layer::new().with_writer(std::io::stdout))
                 .with(fmt::Layer::new().with_writer(file_writer))
                 .init();
-            guard
-        }
+        guard
     };
 
     match cli.command {
-        Commands::Tui => commands::tui::run_tui().await,
+        Commands::App => commands::app::run_app(),
         Commands::Init { refresh } => commands::init::run_init(refresh).await,
         Commands::Run { command } => commands::run::run_command(&command).await,
         Commands::Serve { port } => commands::serve::serve(port).await,
         Commands::Sessions { subcommand } => match subcommand {
             SessionCommands::List => commands::sessions::list_sessions().await,
-            SessionCommands::Show { session_id } => {
-                commands::sessions::show_session(&session_id).await
-            }
-            SessionCommands::Delete { session_id } => {
-                commands::sessions::delete_session(&session_id).await
-            }
+            SessionCommands::Show { session_id } => commands::sessions::show_session(&session_id).await,
+            SessionCommands::Delete { session_id } => commands::sessions::delete_session(&session_id).await,
         },
         Commands::Config { subcommand } => match subcommand {
             ConfigCommands::Show => commands::config::show_config().await,

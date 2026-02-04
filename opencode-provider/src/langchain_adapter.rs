@@ -82,28 +82,40 @@ impl LangChainAdapter {
     }
 }
 
-/// Strips `think>...</think>` blocks and unclosed `think>...` from model output
-/// so only the visible reply is shown (e.g. for One API / deep-thinking models).
-fn strip_think_blocks(s: &str) -> String {
+/// Strips `think>...</think>` and `<think>...</think>` blocks from model output so only the
+/// visible reply is shown (e.g. for One API / deep-thinking / MiniMax-style models).
+/// Unclosed blocks are dropped up to the next `\n\n` or end of string.
+pub(crate) fn strip_thinking_blocks(s: &str) -> String {
     const THINK_OPEN: &str = "think>";
-    const THINK_CLOSE: &str = "</think>";
+    const THINK_XML_OPEN: &str = "<think>";
+    const CLOSE: &str = "</think>";
     let mut out = String::new();
     let mut rest = s;
     loop {
-        if let Some(open_pos) = rest.find(THINK_OPEN) {
-            out.push_str(&rest[..open_pos]);
-            let after_open = open_pos + THINK_OPEN.len();
-            if let Some(close_pos) = rest[after_open..].find(THINK_CLOSE) {
-                rest = &rest[after_open + close_pos + THINK_CLOSE.len()..];
-            } else {
-                let remainder = &rest[after_open..];
-                if let Some(dbl) = remainder.find("\n\n") {
-                    out.push_str(&remainder[dbl + 2..]);
+        let (open_pos, open_len) = match (rest.find(THINK_OPEN), rest.find(THINK_XML_OPEN)) {
+            (Some(p), None) => (p, THINK_OPEN.len()),
+            (None, Some(p)) => (p, THINK_XML_OPEN.len()),
+            (Some(t), Some(x)) => {
+                if t <= x {
+                    (t, THINK_OPEN.len())
+                } else {
+                    (x, THINK_XML_OPEN.len())
                 }
+            }
+            (None, None) => {
+                out.push_str(rest);
                 break;
             }
+        };
+        out.push_str(&rest[..open_pos]);
+        let after_open = open_pos + open_len;
+        if let Some(close_pos) = rest[after_open..].find(CLOSE) {
+            rest = &rest[after_open + close_pos + CLOSE.len()..];
         } else {
-            out.push_str(rest);
+            let remainder = &rest[after_open..];
+            if let Some(dbl) = remainder.find("\n\n") {
+                out.push_str(&remainder[dbl + 2..]);
+            }
             break;
         }
     }
@@ -139,7 +151,7 @@ impl Provider for LangChainAdapter {
 
         let response_trunc = if response.len() > 500 { &response[..500] } else { response.as_str() };
         tracing::debug!(response_trunc = %response_trunc, "LangChainAdapter: response detail");
-        let content = strip_think_blocks(&response);
+        let content = strip_thinking_blocks(&response);
         Ok(GenerateResponse {
             content,
             usage: None,

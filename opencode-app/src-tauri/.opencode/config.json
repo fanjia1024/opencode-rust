@@ -1,0 +1,17 @@
+{
+  "providers": [
+    {
+      "id": "local",
+      "provider_type": "openai",
+      "api_key": "sk-J4GfFMZZxO9HectN0c3fA8CcA005499c873cC8C763C262A8",
+      "base_url": "https://mgallery.haier.net/v1",
+      "model": "MiniMax-M2"
+    }
+  ],
+  "agents": [],
+  "storage": {
+    "session_dir": "/Users/jiafan/Desktop/poc/opencode-rust/opencode-app/src-tauri/.opencode/sessions",
+    "config_dir": "/Users/jiafan/Desktop/poc/opencode-rust/opencode-app/src-tauri/.opencode"
+  },
+  "default_agent": "build"
+}

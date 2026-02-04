@@ -1,0 +1,28 @@
+[package]
+name = "opencode-app"
+version = "0.1.0"
+description = "OpenCode desktop app (Tauri + Vue 3)"
+edition = "2021"
+
+[lib]
+name = "opencode_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = ["codegen"] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+opencode-cli = { path = "../../opencode-cli" }
+opencode-core = { path = "../../opencode-core" }
+opencode-provider = { path = "../../opencode-provider" }
+opencode-tools = { path = "../../opencode-tools" }
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
