@@ -20,6 +20,7 @@ pub struct Chunk {
     pub done: bool,
 }
 
+#[derive(Debug)]
 pub struct Usage {
     pub prompt_tokens: u32,
     pub completion_tokens: u32,
@@ -42,13 +43,19 @@ pub struct Message {
 #[async_trait]
 pub trait Provider: Send + Sync {
     async fn generate(&self, request: GenerateRequest) -> Result<GenerateResponse>;
-    
+
     async fn stream(
         &self,
         request: GenerateRequest,
     ) -> Result<Box<dyn Stream<Item = Result<Chunk>> + Send + Unpin>>;
-    
+
     fn models(&self) -> &[ModelInfo];
+
+    /// Returns the underlying LLM when this provider is backed by one (e.g. LangChainAdapter).
+    /// Used to run deep agent turns with tools. Returns None for providers that do not expose an LLM.
+    fn as_llm(&self) -> Option<std::sync::Arc<dyn langchain_ai_rust::language_models::llm::LLM>> {
+        None
+    }
 }
 
 #[derive(Debug, Clone)]

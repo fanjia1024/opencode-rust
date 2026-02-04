@@ -1,92 +1,141 @@
-# OpenCode Rust - 使用指南
+# OpenCode Rust - 使用与配置指南
 
-## Agent 集成完成 ✅
+本指南涵盖：快速开始、API Key 设置、使用流程、功能验证与故障排除。
 
-langchain-rust provider 集成已完成，现在 Assistant 可以返回真实的 AI 响应！
+---
 
 ## 快速开始
 
 ### 1. 设置 API Key
 
-```bash
-export OPENAI_API_KEY="your-openai-api-key-here"
-```
-
-或者：
-
-```bash
-export OPENCODE_OPENAI_API_KEY="your-openai-api-key-here"
-```
+见下文 [API Key 设置](#api-key-设置)。
 
 ### 2. 运行应用
 
 ```bash
-# 使用 langchain-rust 功能
-cargo run --bin opencode --features langchain -- tui
+# 开发运行（默认已启用 langchain）
+cargo run --bin opencode -- tui
+```
+
+或安装后：
+
+```bash
+opencode tui
 ```
 
 ### 3. 使用流程
 
-1. **创建会话**：按 `n` 键
-2. **输入消息**：在输入框中输入你的问题
-3. **发送消息**：按 `Enter` 键
-4. **查看响应**：Assistant 会通过 langchain-rust 调用 OpenAI API 并显示响应
+1. **创建会话**：在 Home 页按 `n`
+2. **输入消息**：在输入框中输入问题
+3. **发送消息**：按 `Enter`
+4. **查看响应**：Assistant 通过配置的 Provider（如 OpenAI/Anthropic）返回回复
+
+也可在 TUI 中按 `C` 打开配置对话框，选择 Provider、填写 API Key 与可选 Base URL，无需事先设置环境变量。
+
+---
+
+## API Key 设置
+
+### 常见错误
+
+若看到：**"Error: No API key configured. Please set OPENAI_API_KEY environment variable."**，表示需要配置 API Key。
+
+### 方法 1：临时设置（当前终端会话）
+
+```bash
+export OPENAI_API_KEY="your-api-key-here"
+# 或
+export OPENCODE_OPENAI_API_KEY="your-api-key-here"
+
+cargo run --bin opencode -- tui
+```
+
+### 方法 2：永久设置（推荐）
+
+**macOS / Linux**：写入 `~/.zshrc` 或 `~/.bashrc`：
+
+```bash
+echo 'export OPENAI_API_KEY="your-api-key-here"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+**验证**：
+
+```bash
+echo $OPENAI_API_KEY
+```
+
+### 方法 3：使用 .env 文件（若项目支持）
+
+在项目根目录创建 `.env`：
+
+```
+OPENAI_API_KEY=your-api-key-here
+```
+
+### 获取 API Key
+
+- **OpenAI**：访问 https://platform.openai.com/api-keys，登录后创建并复制 key（仅显示一次，请妥善保存）。
+- **Anthropic**：在对应控制台创建 API key，并在 TUI 配置中选择 Anthropic 与对应 key。
+
+### 安全提示
+
+- 不要将 API key 提交到 Git 或分享给他人。
+- 建议定期轮换 key，并使用环境变量而非硬编码。
+
+---
 
 ## 功能验证
 
 ### 验证 Provider 是否工作
 
-1. 运行应用后，创建一个新会话
+1. 运行应用后创建一个新会话（按 `n`）。
 2. 输入测试消息，例如："Hello, how are you?"
-3. 按 Enter 发送
-4. 应该看到 Assistant 的真实响应（而不是占位符）
+3. 按 Enter 发送。
+4. 应看到 Assistant 的真实响应（而非占位符或报错）。
 
 ### 常见错误处理
 
-#### 错误：No API key configured
-- **原因**：未设置环境变量
-- **解决**：设置 `OPENAI_API_KEY` 环境变量
+| 错误 | 原因 | 解决 |
+|------|------|------|
+| **No API key configured** | 未设置环境变量或未在 TUI 中配置 | 设置 `OPENAI_API_KEY` 或 `OPENCODE_OPENAI_API_KEY`，或在 TUI 按 `C` 配置 |
+| **Error initializing provider** | API key 无效或网络问题 | 检查 key 是否正确、网络是否可达 |
+| **langchain-rust feature not enabled** | 使用 `--no-default-features` 构建 | 使用 `cargo build --workspace` 或 `cargo build --workspace --features langchain` 后运行 |
 
-#### 错误：Error initializing provider
-- **原因**：Provider 初始化失败（可能是 API key 无效或网络问题）
-- **解决**：检查 API key 是否正确，检查网络连接
+---
 
-#### 错误：langchain-rust feature not enabled
-- **原因**：未使用 `--features langchain` 编译
-- **解决**：使用 `cargo run --bin opencode --features langchain -- tui` 运行
+## 故障排除
 
-## 技术实现
+### 没有 Assistant 响应 / Processing 一直转
 
-### Provider 流程
+1. **检查 API Key**：`env | grep OPENAI` 或 `env | grep OPENCODE`；或在 TUI 按 `C` 确认配置已保存。
+2. **确认启用 Provider**：默认构建已包含 langchain；若曾用 `--no-default-features`，需重新 `cargo build --workspace`。
+3. **查看日志**：设置 `RUST_LOG=debug` 或 `RUST_LOG=opencode_cli=debug,opencode_provider=debug` 后重新运行，根据终端或 `logs/opencode.log` 判断是初始化失败、网络超时还是响应未回写。
 
-1. **用户输入** → TUI 接收
-2. **消息发送** → 通过 mpsc 通道发送到异步任务
-3. **Provider 初始化** → 从环境变量读取 API key，创建 LangChainAdapter
-4. **Agent 处理** → AgentManager 使用 Provider 处理消息
-5. **响应返回** → 通过 mpsc 通道返回响应到 UI
-6. **UI 更新** → 显示 Assistant 响应
+### 编译错误
 
-### 当前实现状态
+```bash
+cargo clean
+cargo build --workspace
+```
 
-- ✅ Langchain-Rust 集成
-- ✅ OpenAI Provider 支持
-- ✅ 异步消息处理
-- ✅ UI 响应更新
-- ⚠️ 会话持久化（待实现）
-- ⚠️ 工具集成（待实现）
-- ⚠️ 流式响应（待实现）
+若使用 langchain：`cargo build --workspace --features langchain`。
 
-## 下一步改进
+### API 调用不希望走代理
 
-1. **会话持久化**：保存会话历史到文件
-2. **工具集成**：集成实际的工具（read, write, grep 等）
-3. **流式响应**：实现流式输出，提供更好的用户体验
-4. **Provider 选择**：支持切换不同的 AI provider
-5. **错误重试**：添加自动重试机制
+若系统设置了 `HTTP_PROXY`/`HTTPS_PROXY` 但希望直连 API（如 `api.openai.com` 或自定义 base URL），可在运行前设置：
 
-## 测试建议
+```bash
+NO_PROXY=api.openai.com cargo run --bin opencode -- tui
+```
 
-1. **基本对话**：测试简单的问答
-2. **多轮对话**：测试上下文理解
-3. **错误处理**：测试 API key 错误、网络错误等
-4. **性能测试**：测试响应时间和资源使用
+将 `api.openai.com` 替换为你的 API 主机。
+
+---
+
+## 技术说明（简要）
+
+- **Provider**：默认集成 langchain-ai-rust，支持 OpenAI、Anthropic；消息经 Agent 与 Provider 处理后再回写 UI。
+- **会话**：会话列表与历史保存在项目下 `.opencode/sessions`，配置在标准配置目录（如 `~/.config/opencode/` 或 `~/Library/Application Support/opencode/`）。
+
+更多架构与贡献边界见 [README.md](README.md)、[PROJECT_SCOPE.md](PROJECT_SCOPE.md)。

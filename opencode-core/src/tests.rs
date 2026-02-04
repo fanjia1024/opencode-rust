@@ -33,7 +33,7 @@ mod tests {
             created_at: Utc::now(),
             meta: None,
         };
-        session.push(message);
+        session.push_message(message);
         assert_eq!(session.messages.len(), 1);
         assert!(!session.is_empty());
     }
@@ -49,7 +49,7 @@ mod tests {
     fn session_push_and_is_empty() {
         let mut session = Session::new();
         assert!(session.is_empty());
-        session.push(Message {
+        session.push_message(Message {
             role: Role::User,
             content: "hi".to_string(),
             created_at: Utc::now(),
@@ -62,13 +62,13 @@ mod tests {
     #[test]
     fn session_roundtrip() {
         let mut session = Session::new();
-        session.push(Message {
+        session.push_message(Message {
             role: Role::User,
             content: "one".to_string(),
             created_at: Utc::now(),
             meta: None,
         });
-        session.push(Message {
+        session.push_message(Message {
             role: Role::Assistant,
             content: "two".to_string(),
             created_at: Utc::now(),

@@ -1,3 +1,4 @@
+pub mod alias;
 pub mod bash;
 pub mod batch;
 pub mod codesearch;
@@ -27,6 +28,12 @@ pub fn register_all_tools(registry: &mut ToolRegistry) {
     registry.register(read::ReadTool::new());
     registry.register(write::WriteTool::new());
     registry.register(ls::ListTool::new());
+    // Alias for models that call list_files instead of ls (e.g. some Chinese models).
+    registry.register(alias::AliasTool::new(
+        ls::ListTool::new(),
+        "list_files",
+        "List files and directories in the given path. Use path (required) and optional recursive.",
+    ));
     registry.register(grep::GrepTool::new());
     registry.register(edit::EditTool::new());
     registry.register(patch::PatchTool::new());

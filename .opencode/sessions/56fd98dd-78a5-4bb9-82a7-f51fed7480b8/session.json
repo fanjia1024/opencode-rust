@@ -1,0 +1,19 @@
+{
+  "id": "56fd98dd-78a5-4bb9-82a7-f51fed7480b8",
+  "messages": [
+    {
+      "role": "User",
+      "content": " 你好",
+      "created_at": "2026-02-04T00:54:44.384108Z",
+      "meta": null
+    },
+    {
+      "role": "Assistant",
+      "content": "<think>The user greeted me in Chinese saying \"你好\" (Hello/Hi). I should respond in a friendly and helpful manner. Since this is a simple greeting, I should respond in Chinese as well, matching the user's language.\n\nI'll provide a warm greeting and indicate my willingness to help with various tasks.\n</think>\n\n你好！很高兴见到你！我是 MiniMax-M2.1，一个AI助手。我可以帮助你完成很多任务，比如：\n\n- 回答问题和提供信息\n- 写作、翻译和润色\n- 代码编写和调试\n- 分析和解决问题\n- 提供创意建议\n\n请问有什么我可以帮助你的吗？",
+      "created_at": "2026-02-04T00:54:46.709440Z",
+      "meta": null
+    }
+  ],
+  "created_at": "2026-02-04T00:54:44.374622Z",
+  "updated_at": "2026-02-04T00:54:46.709442Z"
+}

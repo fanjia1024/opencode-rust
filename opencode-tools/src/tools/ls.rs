@@ -32,7 +32,14 @@ impl Tool for ListTool {
     }
 
     fn parameters(&self) -> serde_json::Value {
-        serde_json::json!({"type": "object", "properties": {}, "required": []})
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "path": { "type": "string", "description": "Directory path to list" },
+                "recursive": { "type": "boolean", "description": "If true, list recursively (max depth 3)" }
+            },
+            "required": ["path"]
+        })
     }
 
     async fn execute(&self, args: Value, _ctx: &ToolContext) -> Result<ToolResult> {

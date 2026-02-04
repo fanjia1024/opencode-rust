@@ -22,6 +22,7 @@ mod tests {
             session_id: session.id.to_string(),
             message_id: Uuid::new_v4().to_string(),
             agent: "build".to_string(),
+            workspace_path: None,
         };
 
         let mut tool_registry = ToolRegistry::new();

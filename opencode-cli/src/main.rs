@@ -5,7 +5,12 @@ mod tui;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use tracing_subscriber::EnvFilter;
+use tracing_subscriber::{
+    fmt,
+    layer::SubscriberExt,
+    util::SubscriberInitExt,
+    EnvFilter,
+};
 
 #[derive(Parser)]
 #[command(name = "opencode")]
@@ -75,20 +80,47 @@ enum ConfigCommands {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn")),
-        )
-        .init();
+    // Ensure logs directory exists (for both tracing and tklog)
+    let _ = std::fs::create_dir_all("logs");
 
     // File logging to ./logs/opencode.log for debugging (e.g. /init flow)
-    let _ = std::fs::create_dir_all("logs");
     tklog::LOG
         .set_console(false)
         .set_level(tklog::LEVEL::Info)
         .set_cutmode_by_size("logs/opencode.log", 1 << 20, 5, false);
 
     let cli = Cli::parse();
+
+    // Tracing: for Tui, file-only so stdout is not mixed with the TUI; for other commands, stdout + file
+    let filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("info"));
+    let _guard = match &cli.command {
+        Commands::Tui => {
+            let file = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open("logs/opencode.log")?;
+            let (file_writer, guard) = tracing_appender::non_blocking(file);
+            tracing_subscriber::registry()
+                .with(filter)
+                .with(fmt::Layer::new().with_writer(file_writer))
+                .init();
+            guard
+        }
+        _ => {
+            let file = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open("logs/opencode.log")?;
+            let (file_writer, guard) = tracing_appender::non_blocking(file);
+            tracing_subscriber::registry()
+                .with(filter)
+                .with(fmt::Layer::new().with_writer(std::io::stdout))
+                .with(fmt::Layer::new().with_writer(file_writer))
+                .init();
+            guard
+        }
+    };
 
     match cli.command {
         Commands::Tui => commands::tui::run_tui().await,

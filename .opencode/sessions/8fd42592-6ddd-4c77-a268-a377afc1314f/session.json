@@ -1,0 +1,19 @@
+{
+  "id": "8fd42592-6ddd-4c77-a268-a377afc1314f",
+  "messages": [
+    {
+      "role": "User",
+      "content": "hello",
+      "created_at": "2026-02-04T00:46:50.020234Z",
+      "meta": null
+    },
+    {
+      "role": "Assistant",
+      "content": "<think>The user has simply said \"hello\" - this is a greeting. I should respond in a friendly, helpful manner and offer assistance.\n</think>\n\nHello! How can I help you today?",
+      "created_at": "2026-02-04T00:46:51.980005Z",
+      "meta": null
+    }
+  ],
+  "created_at": "2026-02-04T00:46:50.019016Z",
+  "updated_at": "2026-02-04T00:46:51.980009Z"
+}

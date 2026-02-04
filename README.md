@@ -215,18 +215,26 @@ opencode-rust/
 - **API 调用不应走代理** — 若系统设置了 `HTTP_PROXY`/`HTTPS_PROXY`，请求会经代理发出。若希望直连你配置的 API 地址（如 `api.openai.com` 或自定义 base URL 如 `mgallery.haier.net`），可在运行前设置 `NO_PROXY` 包含该主机，例如：`NO_PROXY=mgallery.haier.net cargo run --bin opencode -- tui` 或 `NO_PROXY=api.openai.com cargo run --bin opencode -- tui`。
 - **下载超时 / 镜像慢** — 若全局 `~/.cargo/config.toml` 里配置了 crates 镜像（如 rsproxy），直接运行 `cargo build` / `cargo run` 会使用该镜像，可能超时。任选其一：**临时不用镜像** — 编辑 `~/.cargo/config.toml`，注释或删除 `[source.crates-io]` 下的 `replace-with = "rsproxy-sparse"` 以及对应的 `[source.rsproxy-sparse]` 整块，保存后再执行 cargo；**使用代理** — 配置 `HTTP_PROXY` / `HTTPS_PROXY` 后再执行 cargo。
 
-详见 [SETUP_API_KEY.md](SETUP_API_KEY.md) 与 [USAGE.md](USAGE.md)。
+详见 [USAGE.md](USAGE.md)（含 API Key 配置与故障排除）。
 
 ---
 
 ## Documentation
 
-- [USAGE.md](USAGE.md) — 使用流程与说明
-- [SETUP_API_KEY.md](SETUP_API_KEY.md) — API Key 配置
-- [PROJECT_SCOPE.md](PROJECT_SCOPE.md) — 项目范围与贡献
-- [TECH_DEBT.md](TECH_DEBT.md) — 技术债务与收敛计划
+常用文档（根目录）：
+
+- [USAGE.md](USAGE.md) — 使用与配置（快速开始、API Key、故障排除）
+- [PROJECT_SCOPE.md](PROJECT_SCOPE.md) — 项目范围与贡献边界
+- [CONTRIBUTING.md](CONTRIBUTING.md) — 贡献流程与开发设置
+- [AGENTS.md](AGENTS.md) — Cursor/Agent 规则与项目约定
+- [API.md](API.md) — 内部 API 概览
 - [ROADMAP.md](ROADMAP.md) — v0.2 / v0.3 路线图
-- [LANGCHAIN_FIXES.md](LANGCHAIN_FIXES.md) — langchain-ai-rust 集成说明
+- [TECH_DEBT.md](TECH_DEBT.md) — 技术债务与计划中的移除项
+- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) — TypeScript → Rust 迁移
+
+API Key 配置详见 [USAGE.md](USAGE.md)；若需简短入口可参考 [SETUP_API_KEY.md](SETUP_API_KEY.md)。
+
+完整文档索引见 [docs/README.md](docs/README.md)。历史实现与完成报告见 [docs/archive/](docs/archive/README.md)。
 
 ---
 

@@ -12,16 +12,15 @@ impl HelpDialog {
 OpenCode TUI Help
 
 Keyboard Shortcuts:
-  q          - Quit application
-  n          - New session (Home)
+  (Home)     - q Quit | n New session
+  (Session)  - Letters type into input; use Ctrl+letter for shortcuts:
+               Ctrl+Q Quit | Ctrl+C Config | Ctrl+A Agent | Ctrl+P Providers | Ctrl+H Help
+  /          - Command palette (Session)
   Esc        - Go back / Close dialog
   Enter      - Confirm / Submit
   Arrow Keys - Navigate
 
-  A          - Agents: list and switch current agent (build, plan, general)
-  C          - Provider config: edit default provider (type, model, API key)
-  P          - Providers: list configured providers, set default, edit (e)
-  H / ?      - Help (this screen)
+  Home: single key q/c/a/p/h. Session: type letters in input; Ctrl+Q/C/A/P/H for shortcuts.
 
 Agents:
   build      - Full access agent for development

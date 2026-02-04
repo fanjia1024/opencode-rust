@@ -1,47 +1,218 @@
-[INFO] 2026-02-03 17:59:18 app.rs 621:command_dialog opened98ebc1fa-839d-4e6c-ab7e-64c0b1337384
-[INFO] 2026-02-03 17:59:19 app.rs 367:command_dialog keyEnter
-[INFO] 2026-02-03 17:59:19 command.rs 163:command_dialog Enter07
-[INFO] 2026-02-03 17:59:19 command.rs 168:command_dialog returning selectioninit/init
-[INFO] 2026-02-03 17:59:19 app.rs 374:command_dialog actionidinitlabel/init
-[INFO] 2026-02-03 17:59:19 app.rs 376:command id is init, running init_agents_mdinit
-[INFO] 2026-02-03 17:59:19 app.rs 379:calling init_agents_md/Users/jiafan/Desktop/poc/opencode-rust
-[INFO] 2026-02-03 17:59:19 init.rs 389:init_agents_md called/Users/jiafan/Desktop/poc/opencode-rust
-[INFO] 2026-02-03 17:59:19 init.rs 391:AGENTS.md path/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
-[INFO] 2026-02-03 17:59:19 init.rs 111:scan_project start/Users/jiafan/Desktop/poc/opencode-rust
-[INFO] 2026-02-03 17:59:19 init.rs 139:scan_project donetree_lines88members4
-[INFO] 2026-02-03 17:59:19 init.rs 394:scan completed, generating content
-[INFO] 2026-02-03 17:59:19 init.rs 312:Skipping DeepAgent for unsupported modelMiniMax-M2
-[INFO] 2026-02-03 17:59:58 init.rs 374:LLM generate ok, writing AGENTS.md
-[INFO] 2026-02-03 17:59:58 init.rs 401:writing AGENTS.md/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
-[INFO] 2026-02-03 17:59:58 init.rs 403:AGENTS.md written/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
-[INFO] 2026-02-03 18:05:30 app.rs 621:command_dialog openedbbd0c4bd-aceb-48b8-b715-23f1f59e08b8
-[INFO] 2026-02-03 18:05:30 app.rs 367:command_dialog keyEnter
-[INFO] 2026-02-03 18:05:30 command.rs 163:command_dialog Enter07
-[INFO] 2026-02-03 18:05:30 command.rs 168:command_dialog returning selectioninit/init
-[INFO] 2026-02-03 18:05:30 app.rs 374:command_dialog actionidinitlabel/init
-[INFO] 2026-02-03 18:05:30 app.rs 376:command id is init, running init_agents_mdinit
-[INFO] 2026-02-03 18:05:30 app.rs 379:calling init_agents_md/Users/jiafan/Desktop/poc/opencode-rust
-[INFO] 2026-02-03 18:05:30 init.rs 405:init_agents_md called/Users/jiafan/Desktop/poc/opencode-rust
-[INFO] 2026-02-03 18:05:30 init.rs 407:AGENTS.md path/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
-[INFO] 2026-02-03 18:05:30 init.rs 111:scan_project start/Users/jiafan/Desktop/poc/opencode-rust
-[INFO] 2026-02-03 18:05:30 init.rs 139:scan_project donetree_lines88members4
-[INFO] 2026-02-03 18:05:30 init.rs 410:scan completed, generating content
-[INFO] 2026-02-03 18:05:30 init.rs 301:trying DeepAgent for initopenai
-[INFO] 2026-02-03 18:05:31 init.rs 321:DeepAgent failed, falling back to single generateProvider error: DeepAgent invoke failed: Agent error: Error in agent planning: Chain error: LLM error: OpenAI error: invalid_request_error: Incorrect API key provided: sk-J4GfF***************************************62A8. You can find your API key at https://platform.openai.com/account/api-keys. (code: invalid_api_key)
-[INFO] 2026-02-03 18:05:51 init.rs 390:LLM generate ok, writing AGENTS.md
-[INFO] 2026-02-03 18:05:51 init.rs 417:writing AGENTS.md/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
-[INFO] 2026-02-03 18:05:51 init.rs 419:AGENTS.md written/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
-[INFO] 2026-02-03 18:14:34 app.rs 621:command_dialog openedaa221acb-b9b2-4762-b233-7924021f2998
-[INFO] 2026-02-03 18:14:34 app.rs 367:command_dialog keyEnter
-[INFO] 2026-02-03 18:14:34 command.rs 163:command_dialog Enter07
-[INFO] 2026-02-03 18:14:34 command.rs 168:command_dialog returning selectioninit/init
-[INFO] 2026-02-03 18:14:34 app.rs 374:command_dialog actionidinitlabel/init
-[INFO] 2026-02-03 18:14:34 app.rs 376:command id is init, running init_agents_mdinit
-[03 18:14:34 init.rs 111:scan_project start/Users/jiafan/Desktop/poc/opencode-rust
-[INFO] 2026-02-03 18:14:34 init.rs 139:scan_project donetree_lines88members4
-[INFO] 2026-02-03 18:14:34 init.rs 414:scan completed, generating content
-[INFO] 2026-02-03 18:14:34 init.rs 305:trying DeepAgent for initopenai
-[INFO] 2026-02-03 18:14:58 init.rs 315:DeepAgent wrote AGENTS.mdINFO] 2026-02-03 18:14:34 app.rs 379:calling init_agents_md/Users/jiafan/Desktop/poc/opencode-rust
-[INFO] 2026-02-03 18:14:34 init.rs 409:init_agents_md called/Users/jiafan/Desktop/poc/opencode-rust
-[INFO] 2026-02-03 18:14:34 init.rs 411:AGENTS.md path/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
-[INFO] 2026-02-
+[2m2026-02-04T01:52:36.655267Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m process_message_async started [3msession_id[0m[2m=[0m4b91efb3-f592-465b-bf64-c6fdbbd2ff54 [3minput_len[0m[2m=[0m37
+[2m2026-02-04T01:52:36.655630Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m provider selected [3mprovider_type[0m[2m=[0mopenai
+[2m2026-02-04T01:52:36.663165Z[0m [32m INFO[0m [2mopencode_provider::deep_agent_turn[0m[2m:[0m deep_agent tools registered [3mtool_count[0m[2m=[0m11 [3mtool_ids[0m[2m=[0m["glob", "multiedit", "codesearch", "grep", "edit", "patch", "bash", "read", "write", "ls", "list_files"] [3muse_crate_filesystem[0m[2m=[0mtrue
+[2m2026-02-04T02:40:58.354281Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m process_message_async started [3msession_id[0m[2m=[0m4b91efb3-f592-465b-bf64-c6fdbbd2ff54 [3minput_len[0m[2m=[0m33
+[2m2026-02-04T02:40:58.354556Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m provider selected [3mprovider_type[0m[2m=[0mopenai
+[2m2026-02-04T02:40:58.359990Z[0m [32m INFO[0m [2mopencode_provider::deep_agent_turn[0m[2m:[0m deep_agent tools registered [3mtool_count[0m[2m=[0m11 [3mtool_ids[0m[2m=[0m["codesearch", "ls", "bash", "glob", "edit", "read", "multiedit", "patch", "write", "list_files", "grep"] [3muse_crate_filesystem[0m[2m=[0mtrue
+[2m2026-02-04T02:41:02.072742Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: /Users/jiafan/Desktop/poc/opencode-rust
+[2m2026-02-04T02:41:06.012131Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: /Users/jiafan/Desktop/poc/opencode-rust/Cargo.toml
+[2m2026-02-04T02:41:06.012174Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T02:41:08.976786Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: Cargo.toml
+[2m2026-02-04T02:41:08.976834Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T02:41:10.645074Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: /Users/jiafan/Desktop/poc/opencode-rust/Cargo.toml
+[2m2026-02-04T02:41:10.645122Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T02:41:12.137008Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: cat /Users/jiafan/Desktop/poc/opencode-rust/Cargo.toml
+[2m2026-02-04T02:41:12.137044Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"cat /Users/jiafan/Desktop/poc/opencode-rust/Cargo.toml"
+[2m2026-02-04T02:41:12.137092Z[0m [31mERROR[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run err [3mtool_id[0m[2m=[0mbash [3merror[0m[2m=[0mValidation error: Invalid arguments: invalid type: string "cat /Users/jiafan/Desktop/poc/opencode-rust/Cargo.toml", expected struct BashArgs
+[2m2026-02-04T02:41:12.137114Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Execution failed: Validation error: Invalid arguments: invalid type: string "cat /Users/jiafan/Desktop/poc/opencode-rust/Cargo.toml", expected struct BashArgs
+[INFO] 2026-02-04 10:42:19 app.rs 694:command_dialog opened4b91efb3-f592-465b-bf64-c6fdbbd2ff54
+[INFO] 2026-02-04 10:42:22 app.rs 422:command_dialog keyDown
+[INFO] 2026-02-04 10:42:24 app.rs 422:command_dialog keyDown
+[INFO] 2026-02-04 10:42:24 app.rs 422:command_dialog keyDown
+[INFO] 2026-02-04 10:42:25 app.rs 422:command_dialog keyEnter
+[INFO] 2026-02-04 10:42:25 command.rs 163:command_dialog Enter37
+[INFO] 2026-02-04 10:42:25 command.rs 168:command_dialog returning selectioncode-review/code-review
+[INFO] 2026-02-04 10:42:25 app.rs 429:command_dialog actionidcode-reviewlabel/code-review
+[2m2026-02-04T02:42:41.792199Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m process_message_async started [3msession_id[0m[2m=[0m4b91efb3-f592-465b-bf64-c6fdbbd2ff54 [3minput_len[0m[2m=[0m59
+[2m2026-02-04T02:42:41.792606Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m provider selected [3mprovider_type[0m[2m=[0mopenai
+[2m2026-02-04T02:42:41.793728Z[0m [32m INFO[0m [2mopencode_provider::deep_agent_turn[0m[2m:[0m deep_agent tools registered [3mtool_count[0m[2m=[0m11 [3mtool_ids[0m[2m=[0m["edit", "write", "bash", "glob", "codesearch", "ls", "multiedit", "patch", "grep", "read", "list_files"] [3muse_crate_filesystem[0m[2m=[0mtrue
+[INFO] 2026-02-04 10:45:23 app.rs 694:command_dialog opened64928057-6ada-4971-aefc-a1cfcace710e
+[INFO] 2026-02-04 10:45:24 app.rs 422:command_dialog keyDown
+[INFO] 2026-02-04 10:45:24 app.rs 422:command_dialog keyDown
+[INFO] 2026-02-04 10:45:25 app.rs 422:command_dialog keyUp
+[INFO] 2026-02-04 10:45:27 app.rs 422:command_dialog keyEnter
+[INFO] 2026-02-04 10:45:27 command.rs 163:command_dialog Enter17
+[INFO] 2026-02-04 10:45:27 command.rs 168:command_dialog returning selectionreview/review
+[INFO] 2026-02-04 10:45:27 app.rs 429:command_dialog actionidreviewlabel/review
+[2m2026-02-04T02:45:28.539072Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m process_message_async started [3msession_id[0m[2m=[0m64928057-6ada-4971-aefc-a1cfcace710e [3minput_len[0m[2m=[0m8
+[2m2026-02-04T02:45:28.539841Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m provider selected [3mprovider_type[0m[2m=[0mopenai
+[2m2026-02-04T02:45:28.547753Z[0m [32m INFO[0m [2mopencode_provider::deep_agent_turn[0m[2m:[0m deep_agent tools registered [3mtool_count[0m[2m=[0m11 [3mtool_ids[0m[2m=[0m["grep", "write", "read", "bash", "glob", "patch", "multiedit", "codesearch", "ls", "edit", "list_files"] [3muse_crate_filesystem[0m[2m=[0mtrue
+[2m2026-02-04T02:45:33.535091Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: .
+[2m2026-02-04T02:45:38.348344Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: README.md
+[2m2026-02-04T02:45:38.348411Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T02:45:40.348550Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: /Users/jiafan/Desktop/poc/opencode-rust/README.md
+[2m2026-02-04T02:45:40.348581Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T02:45:42.194438Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: Cargo.toml
+[2m2026-02-04T02:45:42.194490Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T02:45:43.565080Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: cat /Users/jiafan/Desktop/poc/opencode-rust/README.md
+[2m2026-02-04T02:45:43.565154Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"cat /Users/jiafan/Desktop/poc/opencode-rust/README.md"
+[2m2026-02-04T02:45:43.574732Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mbash [3moutput_len[0m[2m=[0m8526
+[2m2026-02-04T02:45:48.978698Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: cat /Users/jiafan/Desktop/poc/opencode-rust/Cargo.toml
+[2m2026-02-04T02:45:48.978760Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"cat /Users/jiafan/Desktop/poc/opencode-rust/Cargo.toml"
+[2m2026-02-04T02:45:48.987272Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mbash [3moutput_len[0m[2m=[0m1350
+[2m2026-02-04T02:45:52.008518Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: find /Users/jiafan/Desktop/poc/opencode-rust -name "*.rs" -type f | head -20
+[2m2026-02-04T02:45:52.008588Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"find /Users/jiafan/Desktop/poc/opencode-rust -name \"*.rs\" -type f | head -20"
+[2m2026-02-04T02:45:52.467353Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mbash [3moutput_len[0m[2m=[0m1432
+[INFO] 2026-02-04 10:58:47 app.rs 694:command_dialog opened64928057-6ada-4971-aefc-a1cfcace710e
+[INFO] 2026-02-04 10:58:48 app.rs 422:command_dialog keyDown
+[INFO] 2026-02-04 10:58:49 app.rs 422:command_dialog keyEnter
+[INFO] 2026-02-04 10:58:49 command.rs 163:command_dialog Enter17
+[INFO] 2026-02-04 10:58:49 command.rs 168:command_dialog returning selectionreview/review
+[INFO] 2026-02-04 10:58:49 app.rs 429:command_dialog actionidreviewlabel/review
+[2m2026-02-04T02:58:50.828543Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m process_message_async started [3msession_id[0m[2m=[0m64928057-6ada-4971-aefc-a1cfcace710e [3minput_len[0m[2m=[0m8
+[2m2026-02-04T02:58:50.828830Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m provider selected [3mprovider_type[0m[2m=[0mopenai
+[2m2026-02-04T02:58:50.835807Z[0m [32m INFO[0m [2mopencode_provider::deep_agent_turn[0m[2m:[0m deep_agent tools registered [3mtool_count[0m[2m=[0m11 [3mtool_ids[0m[2m=[0m["codesearch", "list_files", "glob", "bash", "read", "ls", "grep", "write", "edit", "patch", "multiedit"] [3muse_crate_filesystem[0m[2m=[0mtrue
+[2m2026-02-04T02:58:55.033812Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: .
+[2m2026-02-04T02:58:58.978438Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: Cargo.toml
+[2m2026-02-04T02:58:58.978470Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T02:59:01.518200Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: /Users/jiafan/Desktop/poc/opencode-rust/Cargo.toml
+[2m2026-02-04T02:59:01.518231Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T02:59:03.368916Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: /Users/jiafan/Desktop/poc/opencode-rust
+[2m2026-02-04T02:59:03.368951Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mlist_files [3minput[0m[2m=[0m"/Users/jiafan/Desktop/poc/opencode-rust"
+[2m2026-02-04T02:59:03.370143Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mlist_files [3moutput_len[0m[2m=[0m655
+[INFO] 2026-02-04 11:05:30 app.rs 694:command_dialog openedd71f9a2a-69f0-423a-918d-36fa828f26cb
+[INFO] 2026-02-04 11:05:31 app.rs 422:command_dialog keyDown
+[INFO] 2026-02-04 11:05:32 app.rs 422:command_dialog keyEnter
+[INFO] 2026-02-04 11:05:32 command.rs 163:command_dialog Enter17
+[INFO] 2026-02-04 11:05:32 command.rs 168:command_dialog returning selectionreview/review
+[INFO] 2026-02-04 11:05:32 app.rs 429:command_dialog actionidreviewlabel/review
+[2m2026-02-04T03:05:36.969352Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m process_message_async started [3msession_id[0m[2m=[0md71f9a2a-69f0-423a-918d-36fa828f26cb [3minput_len[0m[2m=[0m8
+[2m2026-02-04T03:05:36.970952Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m provider selected [3mprovider_type[0m[2m=[0mopenai
+[2m2026-02-04T03:05:36.977670Z[0m [32m INFO[0m [2mopencode_provider::deep_agent_turn[0m[2m:[0m deep_agent tools registered [3mtool_count[0m[2m=[0m11 [3mtool_ids[0m[2m=[0m["codesearch", "grep", "glob", "list_files", "write", "read", "ls", "patch", "bash", "multiedit", "edit"] [3muse_crate_filesystem[0m[2m=[0mtrue
+[2m2026-02-04T03:05:40.918501Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: /Users/jiafan/Desktop/poc/opencode-rust
+[2m2026-02-04T03:06:06.467282Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m process_message_async started [3msession_id[0m[2m=[0md71f9a2a-69f0-423a-918d-36fa828f26cb [3minput_len[0m[2m=[0m24
+[2m2026-02-04T03:06:06.467487Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m provider selected [3mprovider_type[0m[2m=[0mopenai
+[2m2026-02-04T03:06:06.468456Z[0m [32m INFO[0m [2mopencode_provider::deep_agent_turn[0m[2m:[0m deep_agent tools registered [3mtool_count[0m[2m=[0m11 [3mtool_ids[0m[2m=[0m["write", "list_files", "ls", "bash", "multiedit", "glob", "edit", "patch", "grep", "codesearch", "read"] [3muse_crate_filesystem[0m[2m=[0mtrue
+[2m2026-02-04T03:06:08.525107Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: opencode-cli
+[2m2026-02-04T03:06:08.525155Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mlist_files [3minput[0m[2m=[0m"opencode-cli"
+[2m2026-02-04T03:06:08.525504Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mlist_files [3moutput_len[0m[2m=[0m15
+[2m2026-02-04T03:06:09.876738Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: opencode-cli/src/main.rs
+[2m2026-02-04T03:06:09.876804Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:06:11.116421Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: opencode-cli/src
+[2m2026-02-04T03:06:11.116482Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mlist_files [3minput[0m[2m=[0m"opencode-cli/src"
+[2m2026-02-04T03:06:11.116932Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mlist_files [3moutput_len[0m[2m=[0m49
+[2m2026-02-04T03:06:12.733736Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: opencode-cli/src/main.rs
+[2m2026-02-04T03:06:12.733782Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:06:14.074827Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: pwd
+[2m2026-02-04T03:06:14.074879Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"pwd"
+[2m2026-02-04T03:06:14.081050Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mbash [3moutput_len[0m[2m=[0m40
+[2m2026-02-04T03:06:16.204045Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: /Users/jiafan/Desktop/poc/opencode-rust/opencode-cli/src/main.rs
+[2m2026-02-04T03:06:16.204083Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:06:18.655257Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: cat /Users/jiafan/Desktop/poc/opencode-rust/opencode-cli/src/main.rs
+[2m2026-02-04T03:06:18.655297Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"cat /Users/jiafan/Desktop/poc/opencode-rust/opencode-cli/src/main.rs"
+[2m2026-02-04T03:06:18.662753Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mbash [3moutput_len[0m[2m=[0m4292
+[2m2026-02-04T03:06:21.078174Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: ls -la /Users/jiafan/Desktop/poc/opencode-rust/opencode-cli/src/commands/
+[2m2026-02-04T03:06:21.078205Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"ls -la /Users/jiafan/Desktop/poc/opencode-rust/opencode-cli/src/commands/"
+[2m2026-02-04T03:06:21.087128Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mbash [3moutput_len[0m[2m=[0m524
+[INFO] 2026-02-04 11:12:11 app.rs 694:command_dialog openedafe14d92-c44c-4694-82fb-e64b87bb125d
+[INFO] 2026-02-04 11:12:12 app.rs 422:command_dialog keyEnter
+[INFO] 2026-02-04 11:12:12 command.rs 163:command_dialog Enter07
+[INFO] 2026-02-04 11:12:12 command.rs 168:command_dialog returning selectioninit/init
+[INFO] 2026-02-04 11:12:12 app.rs 429:command_dialog actionidinitlabel/init
+[INFO] 2026-02-04 11:12:12 app.rs 431:command id is init, running init_agents_mdinit
+[INFO] 2026-02-04 11:12:12 app.rs 434:calling init_agents_md/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-04 11:12:12 init.rs 409:init_agents_md called/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-04 11:12:12 init.rs 411:AGENTS.md path/Users/jiafan/Desktop/poc/opencode-rust/AGENTS.md
+[INFO] 2026-02-04 11:12:12 init.rs 111:scan_project start/Users/jiafan/Desktop/poc/opencode-rust
+[INFO] 2026-02-04 11:12:12 init.rs 139:scan_project donetree_lines91members4
+[INFO] 2026-02-04 11:12:12 init.rs 414:scan completed, generating content
+[INFO] 2026-02-04 11:12:12 init.rs 305:trying DeepAgent for initopenai
+[2m2026-02-04T03:12:12.806051Z[0m [32m INFO[0m [2mopencode_provider::deep_agent[0m[2m:[0m DeepAgent created, invoking [3mmodel[0m[2m=[0mMiniMax-M2
+[2m2026-02-04T03:12:14.688548Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: .
+[2m2026-02-04T03:12:18.513959Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: Cargo.toml
+[2m2026-02-04T03:12:18.514010Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:12:20.403895Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: Cargo.toml
+[2m2026-02-04T03:12:20.403924Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:12:22.059366Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: /workspace
+[2m2026-02-04T03:12:24.642975Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: /workspace/Cargo.toml
+[2m2026-02-04T03:12:24.643019Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:12:26.135509Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: README.md
+[2m2026-02-04T03:12:26.135574Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:12:30.574191Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: AGENTS.md
+[2m2026-02-04T03:12:30.574241Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:12:36.165733Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: /workspace/AGENTS.md
+[2m2026-02-04T03:12:36.165780Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:12:38.775511Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: AGENTS.md
+[2m2026-02-04T03:12:38.775564Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:12:42.225549Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: AGENTS.md
+[2m2026-02-04T03:12:42.225578Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:12:42.225602Z[0m [32m INFO[0m [2mopencode_provider::deep_agent[0m[2m:[0m DeepAgent invoke completed
+[INFO] 2026-02-04 11:12:42 init.rs 315:DeepAgent wrote AGENTS.md
+[2m2026-02-04T03:13:33.912250Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m process_message_async started [3msession_id[0m[2m=[0mafe14d92-c44c-4694-82fb-e64b87bb125d [3minput_len[0m[2m=[0m36
+[2m2026-02-04T03:13:33.912764Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m provider selected [3mprovider_type[0m[2m=[0mopenai
+[2m2026-02-04T03:13:33.913622Z[0m [32m INFO[0m [2mopencode_provider::deep_agent_turn[0m[2m:[0m deep_agent tools registered [3mtool_count[0m[2m=[0m11 [3mtool_ids[0m[2m=[0m["write", "patch", "multiedit", "grep", "ls", "read", "bash", "glob", "codesearch", "edit", "list_files"] [3muse_crate_filesystem[0m[2m=[0mtrue
+[2m2026-02-04T03:13:35.343340Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: .
+[2m2026-02-04T03:13:37.692828Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: Cargo.toml
+[2m2026-02-04T03:13:37.692896Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:13:38.729799Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: Cargo.toml
+[2m2026-02-04T03:13:38.729848Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mread [3minput[0m[2m=[0m"Cargo.toml"
+[2m2026-02-04T03:13:38.730129Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mread [3moutput_len[0m[2m=[0m1350
+[2m2026-02-04T03:13:40.841866Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: README.md
+[2m2026-02-04T03:13:40.841925Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mread [3minput[0m[2m=[0m"README.md"
+[2m2026-02-04T03:13:40.842130Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mread [3moutput_len[0m[2m=[0m8526
+[2m2026-02-04T03:13:42.266601Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: TECH_DEBT.md
+[2m2026-02-04T03:13:42.266644Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mread [3minput[0m[2m=[0m"TECH_DEBT.md"
+[2m2026-02-04T03:13:42.266799Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mread [3moutput_len[0m[2m=[0m1708
+[2m2026-02-04T03:13:45.162823Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: ROADMAP.md
+[2m2026-02-04T03:13:45.162852Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mread [3minput[0m[2m=[0m"ROADMAP.md"
+[2m2026-02-04T03:13:45.162953Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mread [3moutput_len[0m[2m=[0m3850
+[2m2026-02-04T03:13:47.687957Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: PROJECT_SCOPE.md
+[2m2026-02-04T03:13:47.688008Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mread [3minput[0m[2m=[0m"PROJECT_SCOPE.md"
+[2m2026-02-04T03:13:47.688174Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mread [3moutput_len[0m[2m=[0m3984
+[2m2026-02-04T03:13:50.284313Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: opencode-core/src
+[2m2026-02-04T03:13:50.284353Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mlist_files [3minput[0m[2m=[0m"opencode-core/src"
+[2m2026-02-04T03:13:50.285105Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mlist_files [3moutput_len[0m[2m=[0m144
+[2m2026-02-04T03:15:12.669923Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m process_message_async started [3msession_id[0m[2m=[0mafe14d92-c44c-4694-82fb-e64b87bb125d [3minput_len[0m[2m=[0m30
+[2m2026-02-04T03:15:12.670106Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m provider selected [3mprovider_type[0m[2m=[0mopenai
+[2m2026-02-04T03:15:12.671042Z[0m [32m INFO[0m [2mopencode_provider::deep_agent_turn[0m[2m:[0m deep_agent tools registered [3mtool_count[0m[2m=[0m11 [3mtool_ids[0m[2m=[0m["read", "codesearch", "multiedit", "ls", "write", "list_files", "edit", "glob", "bash", "patch", "grep"] [3muse_crate_filesystem[0m[2m=[0mtrue
+[2m2026-02-04T03:15:14.153035Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: **/*.md
+[2m2026-02-04T03:15:14.153075Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing pattern
+[2m2026-02-04T03:15:15.047700Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: .
+[2m2026-02-04T03:15:21.125162Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: README.md
+[2m2026-02-04T03:15:21.125197Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T03:15:22.016940Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: README.md
+[2m2026-02-04T03:15:22.016976Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mread [3minput[0m[2m=[0m"README.md"
+[2m2026-02-04T03:15:22.017109Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mread [3moutput_len[0m[2m=[0m8526
+[2m2026-02-04T03:15:24.534622Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: ROADMAP.md
+[2m2026-02-04T03:15:24.534658Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mread [3minput[0m[2m=[0m"ROADMAP.md"
+[2m2026-02-04T03:15:24.534790Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mread [3moutput_len[0m[2m=[0m3850
+[2m2026-02-04T03:15:26.758371Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: PROJECT_SCOPE.md
+[2m2026-02-04T03:15:26.758412Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mread [3minput[0m[2m=[0m"PROJECT_SCOPE.md"
+[2m2026-02-04T03:15:26.758538Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mread [3moutput_len[0m[2m=[0m3984
+[2m2026-02-04T03:15:29.883042Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: USAGE.md
+[2m2026-02-04T03:15:29.883076Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mread [3minput[0m[2m=[0m"USAGE.md"
+[2m2026-02-04T03:15:29.883195Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mread [3moutput_len[0m[2m=[0m2648
+[2m2026-02-04T03:15:34.860971Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: TECH_DEBT.md
+[2m2026-02-04T03:15:34.861006Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mread [3minput[0m[2m=[0m"TECH_DEBT.md"
+[2m2026-02-04T03:15:34.861128Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mread [3moutput_len[0m[2m=[0m1708
+[2m2026-02-04T03:15:36.209267Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: CONTRIBUTING.md
+[2m2026-02-04T03:15:36.209306Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mread [3minput[0m[2m=[0m"CONTRIBUTING.md"
+[2m2026-02-04T03:15:36.209433Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mread [3moutput_len[0m[2m=[0m799
+[2m2026-02-04T03:15:39.318145Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: docs/README.md
+[2m2026-02-04T03:15:39.318188Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mwrite [3minput[0m[2m=[0m"docs/README.md"
+[2m2026-02-04T03:15:39.318226Z[0m [31mERROR[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run err [3mtool_id[0m[2m=[0mwrite [3merror[0m[2m=[0mValidation error: Invalid arguments: invalid type: string "docs/README.md", expected struct WriteArgs
+[2m2026-02-04T03:15:39.318237Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Execution failed: Validation error: Invalid arguments: invalid type: string "docs/README.md", expected struct WriteArgs
+[2m2026-02-04T05:46:34.875215Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m process_message_async started [3msession_id[0m[2m=[0mafe14d92-c44c-4694-82fb-e64b87bb125d [3minput_len[0m[2m=[0m39
+[2m2026-02-04T05:46:34.875701Z[0m [32m INFO[0m [2mopencode::tui::app[0m[2m:[0m provider selected [3mprovider_type[0m[2m=[0mopenai
+[2m2026-02-04T05:46:34.881637Z[0m [32m INFO[0m [2mopencode_provider::deep_agent_turn[0m[2m:[0m deep_agent tools registered [3mtool_count[0m[2m=[0m11 [3mtool_ids[0m[2m=[0m["multiedit", "ls", "grep", "read", "list_files", "bash", "write", "codesearch", "edit", "patch", "glob"] [3muse_crate_filesystem[0m[2m=[0mtrue
+[2m2026-02-04T05:46:37.485361Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: **/*.md
+[2m2026-02-04T05:46:37.485425Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing pattern
+[2m2026-02-04T05:46:38.978496Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: *.md
+[2m2026-02-04T05:46:38.978532Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing pattern
+[2m2026-02-04T05:46:40.887730Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: find . -name "*.md" -type f | head -30
+[2m2026-02-04T05:46:40.887769Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"find . -name \"*.md\" -type f | head -30"
+[2m2026-02-04T05:46:41.344601Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mbash [3moutput_len[0m[2m=[0m610
+[2m2026-02-04T05:46:44.627831Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: README.md
+[2m2026-02-04T05:46:44.627864Z[0m [32m INFO[0m [2mlangchain_ai_rust::agent::executor[0m[2m:[0m The tool return the following error: Invalid path: missing path
+[2m2026-02-04T05:46:49.152310Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: head -50 README.md
+[2m2026-02-04T05:46:49.152338Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"head -50 README.md"
+[2m2026-02-04T05:46:49.159071Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mbash [3moutput_len[0m[2m=[0m1451
+[2m2026-02-04T05:46:52.135345Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: cat ROADMAP.md
+[2m2026-02-04T05:46:52.135377Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"cat ROADMAP.md"
+[2m2026-02-04T05:46:52.143255Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mbash [3moutput_len[0m[2m=[0m3850
+[2m2026-02-04T05:46:53.971017Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: cat PROJECT_SCOPE.md
+[2m2026-02-04T05:46:53.971045Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"cat PROJECT_SCOPE.md"
+[2m2026-02-04T05:46:53.977698Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mbash [3moutput_len[0m[2m=[0m3984
+[2m2026-02-04T05:46:58.761730Z[0m [32m INFO[0m [2mlangchain_ai_rust::tools::tool[0m[2m:[0m Using default implementation: cat USAGE.md
+[2m2026-02-04T05:46:58.761769Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run start [3mtool_id[0m[2m=[0mbash [3minput[0m[2m=[0m"cat USAGE.md"
+[2m2026-02-04T05:46:58.768098Z[0m [32m INFO[0m [2mopencode_provider::langchain_tool_adapter[0m[2m:[0m deep_agent tool run ok [3mtool_id[0m[2m=[0mbash [3moutput_len[0m[2m=[0m2648

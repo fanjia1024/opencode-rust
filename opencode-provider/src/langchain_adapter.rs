@@ -1,6 +1,7 @@
-use crate::trait_::{GenerateRequest, GenerateResponse, Provider};
+use crate::trait_::{Chunk, GenerateRequest, GenerateResponse, Provider};
 use async_trait::async_trait;
 use futures::Stream;
+use futures::StreamExt;
 use opencode_core::error::{Error, Result};
 use std::sync::Arc;
 
@@ -74,6 +75,11 @@ impl LangChainAdapter {
             "Anthropic support not available in langchain-ai-rust".to_string(),
         ))
     }
+
+    /// Returns the underlying LLM for use with deep agent (e.g. run_deep_agent_turn).
+    pub fn llm(&self) -> Arc<dyn langchain_ai_rust::language_models::llm::LLM> {
+        Arc::clone(&self.llm)
+    }
 }
 
 /// Strips `think>...</think>` blocks and unclosed `think>...` from model output
@@ -117,11 +123,12 @@ impl Provider for LangChainAdapter {
             })
             .collect::<Vec<_>>()
             .join("");
-        tracing::debug!(prompt_len = prompt.len(), "LangChainAdapter::generate");
-        tracing::debug!("calling llm.invoke");
+        tracing::info!(prompt_len = prompt.len(), "LangChainAdapter: llm.invoke start");
+        let prompt_trunc = if prompt.len() > 200 { &prompt[..200] } else { prompt.as_str() };
+        tracing::debug!(prompt_trunc = %prompt_trunc, "LangChainAdapter: request detail");
         let response = match self.llm.invoke(&prompt).await {
             Ok(r) => {
-                tracing::debug!(response_len = r.len(), "llm.invoke succeeded");
+                tracing::info!(response_len = r.len(), "LangChainAdapter: llm.invoke succeeded");
                 r
             }
             Err(e) => {
@@ -130,6 +137,8 @@ impl Provider for LangChainAdapter {
             }
         };
 
+        let response_trunc = if response.len() > 500 { &response[..500] } else { response.as_str() };
+        tracing::debug!(response_trunc = %response_trunc, "LangChainAdapter: response detail");
         let content = strip_think_blocks(&response);
         Ok(GenerateResponse {
             content,
@@ -139,14 +148,41 @@ impl Provider for LangChainAdapter {
 
     async fn stream(
         &self,
-        _request: GenerateRequest,
-    ) -> Result<Box<dyn Stream<Item = Result<crate::trait_::Chunk>> + Send + Unpin>> {
-        Err(Error::Provider(
-            "Streaming not yet implemented with langchain-ai-rust".to_string(),
-        ))
+        request: GenerateRequest,
+    ) -> Result<Box<dyn Stream<Item = Result<Chunk>> + Send + Unpin>> {
+        use langchain_ai_rust::schemas::Message;
+
+        let messages: Vec<Message> = request
+            .messages
+            .into_iter()
+            .map(|m| match m.role {
+                crate::trait_::MessageRole::System => Message::new_system_message(m.content),
+                crate::trait_::MessageRole::User => Message::new_human_message(m.content),
+                crate::trait_::MessageRole::Assistant => Message::new_ai_message(m.content),
+            })
+            .collect();
+
+        let stream = self
+            .llm
+            .stream(&messages)
+            .await
+            .map_err(|e| Error::Provider(format!("LLM stream failed: {}", e)))?;
+
+        let mapped = stream.map(|r| {
+            r.map(|stream_data| Chunk {
+                content: stream_data.content,
+                done: false,
+            })
+            .map_err(|e| Error::Provider(format!("Stream error: {}", e)))
+        });
+        Ok(Box::new(mapped) as Box<dyn Stream<Item = Result<Chunk>> + Send + Unpin>)
     }
 
     fn models(&self) -> &[crate::trait_::ModelInfo] {
         &[]
+    }
+
+    fn as_llm(&self) -> Option<Arc<dyn langchain_ai_rust::language_models::llm::LLM>> {
+        Some(self.llm())
     }
 }

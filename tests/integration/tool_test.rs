@@ -15,6 +15,7 @@ mod tests {
             message_id: "test".to_string(),
             agent: "test".to_string(),
             call_id: None,
+            workspace_path: None,
         };
 
         let args = json!({
@@ -37,6 +38,7 @@ mod tests {
             message_id: "test".to_string(),
             agent: "test".to_string(),
             call_id: None,
+            workspace_path: None,
         };
 
         let test_file = "/tmp/test_write_tool.txt";
@@ -64,6 +66,7 @@ mod tests {
             message_id: "test".to_string(),
             agent: "test".to_string(),
             call_id: None,
+            workspace_path: None,
         };
 
         let args = json!({
@@ -89,6 +92,7 @@ mod tests {
             message_id: "test".to_string(),
             agent: "test".to_string(),
             call_id: None,
+            workspace_path: None,
         };
 
         let args = json!({

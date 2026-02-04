@@ -1,4 +1,12 @@
-use crate::tui::components::{header, message_view::MessageView, sidebar, spinner::Spinner};
+use crate::tui::app::LogEntry;
+use crate::tui::components::{
+    header,
+    log_panel::LogPanel,
+    message_view::MessageView,
+    sidebar,
+    spinner::Spinner,
+    virtual_scroll::VirtualScroll,
+};
 use crate::tui::theme::Theme;
 use opencode_core::session::{Role, Session};
 use ratatui::prelude::*;
@@ -8,6 +16,8 @@ use std::env;
 pub struct SessionScreen {
     pub session_id: String,
     pub message_view: MessageView,
+    pub log_entries: Vec<LogEntry>,
+    pub log_scroll: VirtualScroll,
     pub input: String,
     pub is_processing: bool,
     pub spinner: Spinner,
@@ -18,10 +28,25 @@ impl SessionScreen {
         Self {
             session_id,
             message_view: MessageView::new(),
+            log_entries: Vec::new(),
+            log_scroll: VirtualScroll::new(10),
             input: String::new(),
             is_processing: false,
             spinner: Spinner::new(),
         }
+    }
+
+    pub fn append_log_entry(&mut self, entry: LogEntry) {
+        self.log_entries.push(entry);
+        self.log_scroll.scroll_to_bottom();
+    }
+
+    pub fn scroll_log_up(&mut self) {
+        self.log_scroll.scroll_up(1);
+    }
+
+    pub fn scroll_log_down(&mut self) {
+        self.log_scroll.scroll_down(1);
     }
 
     pub fn load_messages(&mut self, session: &Session) {
@@ -39,6 +64,22 @@ impl SessionScreen {
 
     pub fn add_message(&mut self, message: String) {
         self.message_view.add_message(message);
+    }
+
+    pub fn start_streaming_assistant(&mut self) {
+        self.message_view.start_streaming_assistant();
+    }
+
+    pub fn append_streaming_chunk(&mut self, chunk: String) {
+        self.message_view.append_streaming_chunk(chunk);
+    }
+
+    pub fn finish_streaming_assistant(&mut self) {
+        self.message_view.finish_streaming_assistant();
+    }
+
+    pub fn is_streaming(&self) -> bool {
+        self.message_view.is_streaming()
     }
 
     pub fn scroll_up(&mut self) {
@@ -86,7 +127,8 @@ impl SessionScreen {
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Length(3),
-                Constraint::Min(1),
+                Constraint::Min(10),
+                Constraint::Length(10),
                 Constraint::Length(3),
                 Constraint::Length(1),
                 Constraint::Length(1),
@@ -100,6 +142,13 @@ impl SessionScreen {
             theme,
         );
         self.message_view.render(f, right_chunks[1], theme);
+        LogPanel::render(
+            f,
+            right_chunks[2],
+            &self.log_entries,
+            &mut self.log_scroll,
+            theme,
+        );
 
         // Input area
         let input_title = if self.is_processing {
@@ -129,18 +178,18 @@ impl SessionScreen {
                 theme.primary
             }));
 
-        f.render_widget(input_paragraph, right_chunks[2]);
+        f.render_widget(input_paragraph, right_chunks[3]);
 
         // Keybind hint row (with current agent and model)
         let agent_str = current_agent.unwrap_or("—");
         let model_str = current_model.unwrap_or("—");
         let keybind_text = format!(
-            "Enter send  Esc Home  Up/Down scroll  |  Agent: {}  Model: {}",
+            "Enter send  Esc Home  Up/Down msg  Alt+Up/Down log  Ctrl+Q/C/A/P/H  |  Top: chat, Bottom: log  |  Agent: {}  Model: {}",
             agent_str, model_str
         );
         let keybind_line = Paragraph::new(keybind_text.as_str())
             .style(Style::default().fg(theme.secondary).bg(theme.panel_bg));
-        f.render_widget(keybind_line, right_chunks[3]);
+        f.render_widget(keybind_line, right_chunks[4]);
 
         // Footer: cwd left, version right
         let cwd = env::current_dir()
@@ -153,7 +202,7 @@ impl SessionScreen {
             cwd
         };
         let version = env!("CARGO_PKG_VERSION");
-        let footer_area = right_chunks[4];
+        let footer_area = right_chunks[5];
         let footer_chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])

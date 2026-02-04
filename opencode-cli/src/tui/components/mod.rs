@@ -4,6 +4,7 @@ pub mod code_block;
 pub mod diff_view;
 pub mod footer;
 pub mod header;
+pub mod log_panel;
 pub mod link;
 pub mod logo;
 pub mod message_view;

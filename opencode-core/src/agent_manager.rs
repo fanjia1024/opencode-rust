@@ -4,6 +4,7 @@ use crate::session::Session;
 use crate::tool::Tool;
 use std::collections::HashMap;
 use std::sync::Arc;
+use tokio::sync::mpsc::UnboundedSender;
 
 pub struct AgentManager {
     agents: HashMap<String, Arc<dyn Agent>>,
@@ -50,8 +51,25 @@ impl AgentManager {
     ) -> Result<()> {
         let agent = self.current()
             .ok_or_else(|| crate::error::Error::Agent("No current agent".to_string()))?;
-        
+
         agent.process(ctx, input, session, provider, tools).await
+    }
+
+    pub async fn process_stream(
+        &self,
+        ctx: &Context,
+        input: &str,
+        session: &mut Session,
+        provider: &dyn Provider,
+        tools: &[Arc<dyn Tool>],
+        stream_tx: UnboundedSender<(String, Option<String>)>,
+    ) -> Result<()> {
+        let agent = self.current()
+            .ok_or_else(|| crate::error::Error::Agent("No current agent".to_string()))?;
+
+        agent
+            .process_stream(ctx, input, session, provider, tools, stream_tx)
+            .await
     }
 
     pub fn list(&self) -> Vec<String> {

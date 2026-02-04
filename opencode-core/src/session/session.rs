@@ -25,6 +25,17 @@ impl Session {
         }
     }
 
+    /// Create a session with a specific ID (e.g. to match folder name / UI session_id).
+    pub fn with_id(id: SessionId) -> Self {
+        let now = Utc::now();
+        Self {
+            id,
+            messages: Vec::new(),
+            created_at: now,
+            updated_at: now,
+        }
+    }
+
     /// Add a message to the session
     pub fn push_message(&mut self, message: Message) {
         self.messages.push(message);

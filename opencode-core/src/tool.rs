@@ -3,11 +3,14 @@ use async_trait::async_trait;
 use schemars::JsonSchema;
 use serde_json::Value;
 
+#[derive(Clone)]
 pub struct ToolContext {
     pub session_id: String,
     pub message_id: String,
     pub agent: String,
     pub call_id: Option<String>,
+    /// Current project/workspace directory for tool execution (e.g. resolving relative paths).
+    pub workspace_path: Option<String>,
 }
 
 pub struct ToolResult {
